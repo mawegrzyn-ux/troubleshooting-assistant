@@ -24,35 +24,35 @@ async function loadWord(filePath) {
 async function loadJSON(filePath) {
   const rawData = fs.readFileSync(filePath);
   const jsonData = JSON.parse(rawData);
-  
-  return jsonData.map(item => 
-    `System: ${item.system}
+
+  // Return an array of mini-documents (one per problem)
+  return jsonData.map(item => ({
+    pageContent: `Problem: ${item.problem}
+System: ${item.system}
 Vendor: ${item.vendor}
-Problem: ${item.problem}
-What to try first: ${item.what_to_try_first.join(" ")}
-When to call support: ${item.when_to_call_support}`
-  ).join("\n\n");
+Steps: ${item.what_to_try_first.join(" ")}
+When to call support: ${item.when_to_call_support}`,
+    metadata: { system: item.system, vendor: item.vendor, problem: item.problem }
+  }));
 }
 // --- Search Function ---
 
 async function searchDocs(query) {
-  let combinedTexts = [];
+  let docs = [];
 
   for (let doc of catalog) {
-    let text;
     if (doc.type === "json") {
-      text = await loadJSON(doc.path);
+      const entries = await loadJSON(doc.path);
+      docs = docs.concat(entries);
     }
-    combinedTexts.push(text);
   }
 
-  const vectorStore = await MemoryVectorStore.fromTexts(
-    combinedTexts,
-    catalog,
+  const vectorStore = await MemoryVectorStore.fromDocuments(
+    docs,
     new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
   );
 
-  const results = await vectorStore.similaritySearch(query, 3);
+  const results = await vectorStore.similaritySearch(query, 1); // best match only
   return results.map(r => r.pageContent);
 }
 
