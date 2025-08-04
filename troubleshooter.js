@@ -36,7 +36,6 @@ When to call support: ${item.when_to_call_support}`
 // --- Search Function ---
 
 async function searchDocs(query) {
-  // For now, load all docs from catalog
   let combinedTexts = [];
 
   for (let doc of catalog) {
@@ -56,6 +55,7 @@ async function searchDocs(query) {
   const results = await vectorStore.similaritySearch(query, 3);
   return results.map(r => r.pageContent);
 }
+
 
 // --- Main Answer Function ---
 
