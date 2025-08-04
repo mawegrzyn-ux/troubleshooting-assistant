@@ -31,38 +31,24 @@ async function loadJSON(filePath) {
 // --- Search Function ---
 
 async function searchDocs(query) {
-  // Document catalog
-  const catalog = [
-    { id: "wifi", path: "./data/troubleshooting_wifi.pdf", type: "pdf" },
-    { id: "printer", path: "./data/printer_errors.docx", type: "word" },
-    { id: "vpn", path: "./data/vpn_fixes.json", type: "json" }
-  ];
-
-  // Simple keyword-based filter
-  const docsToLoad = catalog.filter(doc =>
-    query.toLowerCase().includes(doc.id)
-  );
-
+  // For now, load all docs from catalog
   let combinedTexts = [];
-  for (let doc of docsToLoad) {
-    let text;
-    if (doc.type === "pdf") text = await loadPDF(doc.path);
-    if (doc.type === "word") text = await loadWord(doc.path);
-    if (doc.type === "json") text = await loadJSON(doc.path);
-    combinedTexts.push(text);
-  }
 
-  if (combinedTexts.length === 0) {
-    return ["No relevant troubleshooting docs found."];
+  for (let doc of catalog) {
+    let text;
+    if (doc.type === "json") {
+      text = await loadJSON(doc.path);
+    }
+    combinedTexts.push(text);
   }
 
   const vectorStore = await MemoryVectorStore.fromTexts(
     combinedTexts,
-    docsToLoad,
+    catalog,
     new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
   );
 
-  const results = await vectorStore.similaritySearch(query, 2);
+  const results = await vectorStore.similaritySearch(query, 3);
   return results.map(r => r.pageContent);
 }
 
