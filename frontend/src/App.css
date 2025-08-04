@@ -40,3 +40,44 @@
 .read-the-docs {
   color: #888;
 }
+.chat-container {
+  max-width: 600px;
+  margin: 20px auto;
+  font-family: Arial, sans-serif;
+}
+
+.chat-box {
+  border: 1px solid #ccc;
+  padding: 10px;
+  height: 400px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  background: #f9f9f9;
+}
+
+.message {
+  margin-bottom: 15px;
+}
+
+.message.you {
+  text-align: right;
+}
+
+.message.assistant {
+  text-align: left;
+}
+
+.assistant-section {
+  margin-left: 10px;
+}
+
+.assistant-section strong {
+  display: block;
+  margin: 5px 0;
+}
+
+.assistant-section ul {
+  margin: 5px 0 10px 20px;
+  list-style-type: disc;
+}
+
