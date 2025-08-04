@@ -1,14 +1,19 @@
 import express from "express";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
-import { getTroubleshootingAnswer } from "./troubleshooter.js";
 import cors from "cors";
-
+import path from "path";
+import { fileURLToPath } from "url";
+import { getTroubleshootingAnswer } from "./troubleshooter.js";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
-app.use(cors());
 app.use(bodyParser.json());
+app.use(cors());
 
 // Chat endpoint
 app.post("/chat", async (req, res) => {
@@ -17,11 +22,19 @@ app.post("/chat", async (req, res) => {
     const reply = await getTroubleshootingAnswer(message);
     res.json({ reply });
   } catch (err) {
-    console.error(err);
+    console.error("Error in /chat:", err);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
-app.use(express.static("."));
+
+// Serve React build
+app.use(express.static(path.join(__dirname, "frontend/dist")));
+
+// Catch-all for React Router
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
+});
+
 app.listen(3000, () => {
-  console.log("Assistant backend running on port 3000");
+  console.log("Assistant backend + frontend running on port 3000");
 });
