@@ -1,0 +1,332 @@
+[
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "Screen is blank / won\u2019t turn on",
+    "what_to_try_first": [
+      "Make sure the power cable is firmly plugged in.",
+      "Check if the outlet works (try another device).",
+      "Press the power button on the screen.",
+      "If using a power strip, make sure it\u2019s switched on."
+    ],
+    "when_to_call_support": "If the screen still doesn\u2019t turn on."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "One or more screen shows as offline (but not all)",
+    "what_to_try_first": [
+      "Make sure the power cable is firmly plugged in.",
+      "Check if the outlet works (try another device).",
+      "Press the power button on the screen.",
+      "If using a power strip, make sure it\u2019s switched on."
+    ],
+    "when_to_call_support": "If the screen still doesn\u2019t turn on."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "All Screen shows \u201cOffline\u201d message",
+    "what_to_try_first": [
+      "Check that the in-store server (back office PC) is powered on.",
+      "Make sure the network switch (usually in the back office or comms cabinet) has lights on.",
+      "Restart the KDS screen.",
+      "If possible, confirm other KDS screens are working."
+    ],
+    "when_to_call_support": "If the screen still says \u201cOffline\u201d after these checks."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "Touchscreen doesn\u2019t respond",
+    "what_to_try_first": [
+      "Wipe the screen with a clean, dry cloth.",
+      "Restart the screen (turn it off and back on).",
+      "Make sure nothing is resting on the screen."
+    ],
+    "when_to_call_support": "If the screen still doesn\u2019t respond to touch."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "Orders are not showing up",
+    "what_to_try_first": [
+      "Check if the POS (till) is working and sending orders.",
+      "Make sure the KDS is connected to the internet (look for Wi-Fi or network cable).",
+      "Restart the KDS app (close and reopen)."
+    ],
+    "when_to_call_support": "If orders still don\u2019t appear."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "Orders are showing on the wrong screen",
+    "what_to_try_first": [
+      "Check the station name/number on the screen matches where it should be.",
+      "Restart the KDS app."
+    ],
+    "when_to_call_support": "If orders still show up in the wrong place."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "Screen is very slow or lagging",
+    "what_to_try_first": [
+      "Close any other apps that may be open.",
+      "Restart the KDS.",
+      "Make sure Wi-Fi or network cable is connected and stable."
+    ],
+    "when_to_call_support": "If the screen is still slow."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "Printer tickets don\u2019t match what\u2019s on the screen",
+    "what_to_try_first": [
+      "Check the printer has power and paper.",
+      "Make sure the printer is turned on and connected.",
+      "Restart both the printer and the KDS."
+    ],
+    "when_to_call_support": "If the tickets still don\u2019t match."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "KDS app is frozen or crashed",
+    "what_to_try_first": [
+      "Close the app and reopen it.",
+      "If that doesn\u2019t work, restart the screen.",
+      "Check if there\u2019s a message about updates."
+    ],
+    "when_to_call_support": "If it keeps freezing or crashing."
+  },
+  {
+    "system": "KDS",
+    "vendor": "QSR",
+    "problem": "No internet connection",
+    "what_to_try_first": [
+      "Check the network cable is plugged in, or that Wi-Fi shows as connected.",
+      "If safe to do so, restart the Wi-Fi router or switch.",
+      "Restart the KDS screen."
+    ],
+    "when_to_call_support": "If there\u2019s still no internet."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "\u201cKiosk Currently Unavailable\u201d message",
+    "what_to_try_first": [
+      "Make sure the internet connection is active (try Wi-Fi or ethernet).",
+      "Restart the kiosk (power off, wait 10 seconds, power on).",
+      "Clear temporary files: if you can access Admin, go to C:\\QikServe, delete cache and shadowcache, then reboot."
+    ],
+    "when_to_call_support": "If message remains after reboot and cache removal. (help.qikserve.com)"
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Attract screen or images won\u2019t load",
+    "what_to_try_first": [
+      "Sign in as kiosk admin.",
+      "Go to C:\\QikServe. Delete both cache and shadowcache.",
+      "Reboot the kiosk and wait ~5 minutes. (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If images or menus still don\u2019t show after reboot."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Kiosk keeps restarting to Windows sign-in screen",
+    "what_to_try_first": [
+      "Log in as kiosk admin.",
+      "Navigate to C:\\QikServe\\programs\\sysinternals-auto-login.",
+      "Run Autologon.exe, enter \u201cKioskUser\u201d and password, click \u201cEnable\u201d twice.",
+      "Reboot to check if it now logs in correctly. (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If the kiosk still drops to sign-in screen after reboot."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Disk space seems full or kiosk slow",
+    "what_to_try_first": [
+      "Log in as admin.",
+      "Open \u201cThis PC\u201d and check free space on the disk.",
+      "Empty Recycle Bin.",
+      "For certain hardware: delete older log files from e.g. FreedomPay\\Freeway Commerce Connect\\dmp. (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If low disk space remains or kiosk performance doesn\u2019t improve."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Menu item errors or items missing",
+    "what_to_try_first": [
+      "Confirm the menu in the QikServe Dashboard matches what's in your POS.",
+      "Push an update via \u201cUpdate External Menus\u201d in QikServe Dashboard.",
+      "Check the item\u2019s external ID in Dashboard matches POS records. (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If mistakes persist or specific items still error \u2014 report with item name, price, and PLU."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Tickets or payment errors",
+    "what_to_try_first": [
+      "Ensure payment terminal is plugged into the kiosk.",
+      "Verify terminal is powered on and visible on screen.",
+      "Restart terminal if needed.",
+      "Run a test payment (void if successful). (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If payments still fail or terminal stays offline."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Printer does not work",
+    "what_to_try_first": [
+      "Verify printer has power and paper loaded correctly.",
+      "Check cables are fully inserted.",
+      "Restart the printer. (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If printer remains inactive or still doesn\u2019t print."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Kiosk app freezes or doesn\u2019t respond",
+    "what_to_try_first": [
+      "Try using the home button (if visible) to restart the app.",
+      "If that doesn\u2019t work, power-cycle the kiosk. (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If the app keeps freezing repeatedly."
+  },
+  {
+    "system": "Kiosk",
+    "vendor": "Qikserve",
+    "problem": "Kiosk stopped generating logs (no records of use)",
+    "what_to_try_first": [
+      "Reboot the kiosk \u2014 doing this usually restores logging.",
+      "Check after reboot that logs are being created again. (help.qikserve.com)"
+    ],
+    "when_to_call_support": "If logging still doesn\u2019t resume after reboot."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Receipt printer won\u2019t print after payment",
+    "what_to_try_first": [
+      "Make sure printer is on and has paper.",
+      "Check that the receipt printer is the one selected on screen.",
+      "Restart the POS terminal."
+    ],
+    "when_to_call_support": "If printer still won\u2019t print."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Printer prints blank or garbled receipt",
+    "what_to_try_first": [
+      "Reload the paper roll (make sure thermal side faces the right way).",
+      "Clean paper path.",
+      "Restart POS terminal."
+    ],
+    "when_to_call_support": "If receipt still prints wrong."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Payment fails or terminal shows error",
+    "what_to_try_first": [
+      "Confirm correct payment method selected.",
+      "Make sure Adyen terminal is on and plugged in.",
+      "Restart terminal with power button.",
+      "Try test payment (void if successful)."
+    ],
+    "when_to_call_support": "If payments still fail or show errors."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Cash drawer won\u2019t open",
+    "what_to_try_first": [
+      "Confirm cable from drawer to printer/terminal is connected.",
+      "Ensure sale is fully finished.",
+      "Try \u201cNo Sale\u201d function if available."
+    ],
+    "when_to_call_support": "If drawer still won\u2019t open."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Cash drawer opens unexpectedly or won\u2019t close",
+    "what_to_try_first": [
+      "Remove any debris.",
+      "Make sure drawer is fully closed before next sale."
+    ],
+    "when_to_call_support": "If drawer keeps opening by itself or won\u2019t latch."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Receipt printed but drawer didn\u2019t open",
+    "what_to_try_first": [
+      "Confirm printer is working.",
+      "Check drawer cable is secure."
+    ],
+    "when_to_call_support": "If printer works fine but drawer won\u2019t open."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "System slow or payment delayed",
+    "what_to_try_first": [
+      "Close and reopen Simphony POS.",
+      "Restart terminal.",
+      "Wait 2\u20133 minutes for reconnect."
+    ],
+    "when_to_call_support": "If slow after restart or affects multiple terminals."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Price is wrong on item or bill",
+    "what_to_try_first": [
+      "Do not continue the sale.",
+      "Cancel the transaction.",
+      "Inform manager immediately.",
+      "Run database update"
+    ],
+    "when_to_call_support": "Always contact support \u2014 pricing must be corrected in POS database."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Menu item missing from POS screen",
+    "what_to_try_first": [
+      "Check other categories or tabs to confirm it\u2019s not misplaced.",
+      "If item is still missing, notify manager."
+    ],
+    "when_to_call_support": "Contact support \u2014 missing items must be added in the Simphony menu setup."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "Login or station assignment error",
+    "what_to_try_first": [
+      "Log out and back in.",
+      "Check you\u2019re using the right station ID."
+    ],
+    "when_to_call_support": "If login still fails or station shows wrong setup."
+  },
+  {
+    "system": "POS",
+    "vendor": "Simphony",
+    "problem": "An item got incorrect options",
+    "what_to_try_first": [
+      "Log out and log in, try one more data.",
+      "Run database update."
+    ],
+    "when_to_call_support": "If actions fail"
+  }
+]
