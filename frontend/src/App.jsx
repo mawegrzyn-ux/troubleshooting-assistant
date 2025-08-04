@@ -31,39 +31,39 @@ function App() {
     setInput("");
   };
 
-  const renderAssistantMessage = (text) => {
-    const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+const renderAssistantMessage = (text) => {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
 
-    let problem = "";
-    let steps = [];
-    let support = "";
+  let problem = "";
+  let steps = [];
+  let support = "";
 
-    lines.forEach((line) => {
-      if (line.startsWith("Problem:")) {
-        problem = line.replace("Problem:", "").trim();
-      } else if (line.startsWith("•") || line.toLowerCase().startsWith("step")) {
-        steps.push(line.replace("•", "").trim());
-      } else if (line.startsWith("When to call support:")) {
-        support = line.replace("When to call support:", "").trim();
-      }
-    });
+  lines.forEach((line) => {
+    if (line.toLowerCase().startsWith("problem")) {
+      problem = line.replace(/Problem:/i, "").trim();
+    } else if (line.startsWith("•") || line.toLowerCase().startsWith("step")) {
+      steps.push(line.replace("•", "").trim());
+    } else if (line.toLowerCase().startsWith("when to call support")) {
+      support = line.replace(/When to call support:/i, "").trim();
+    }
+  });
 
-    return (
-      <div className="assistant-section">
-        {problem && <p><strong>Problem:</strong> {problem}</p>}
-        {steps.length > 0 && (
-          <div>
-            <strong>Steps:</strong>
-            <ul>
-              {steps.map((s, i) => <li key={i}>{s}</li>)}
-            </ul>
-          </div>
-        )}
-        {support && <p><strong>When to call support:</strong> {support}</p>}
-      </div>
-    );
-  };
-
+  return (
+    <div className="assistant-section">
+      {problem && <p><strong>Problem:</strong> {problem}</p>}
+      {steps.length > 0 && (
+        <div>
+          <strong>Steps:</strong>
+          <ul>
+            {steps.map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
+        </div>
+      )}
+      {support && <p><strong>When to call support:</strong> {support}</p>}
+      {!problem && !steps.length && !support && <p>{text}</p>}
+    </div>
+  );
+};
   return (
     <div className="chat-container">
       <h2>AI Troubleshooting Assistant</h2>
