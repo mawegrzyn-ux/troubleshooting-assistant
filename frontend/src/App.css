@@ -1,58 +1,33 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-.chat-container {
-  max-width: 600px;
-  margin: 20px auto;
+body {
+  margin: 0;
   font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+h2 {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 1.5rem;
+  color: #333;
 }
 
 .chat-box {
-  border: 1px solid #ccc;
-  padding: 10px;
-  height: 400px;
+  flex: 1;
+  padding: 15px;
   overflow-y: auto;
-  margin-bottom: 10px;
-  background: #f9f9f9;
+  background: #ffffff;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .message {
@@ -67,13 +42,10 @@
   text-align: left;
 }
 
-.assistant-section {
-  margin-left: 10px;
-}
-
 .assistant-section strong {
   display: block;
-  margin: 5px 0;
+  margin-bottom: 5px;
+  color: #222;
 }
 
 .assistant-section ul {
@@ -81,3 +53,36 @@
   list-style-type: disc;
 }
 
+.input-container {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background: #fafafa;
+  position: sticky;
+  bottom: 0;
+}
+
+.input-container input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.input-container button {
+  margin-left: 10px;
+  padding: 12px 20px;
+  background: #0069d9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.input-container button:hover {
+  background: #0056b3;
+}
