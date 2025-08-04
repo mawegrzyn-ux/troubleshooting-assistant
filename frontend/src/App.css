@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  background: #e6f4f0; /* light mint green */
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -18,34 +18,69 @@ h2 {
   text-align: center;
   margin: 10px 0;
   font-size: 1.5rem;
-  color: #333;
+  color: #004d33; /* dark green */
 }
 
 .chat-box {
   flex: 1;
   padding: 15px;
   overflow-y: auto;
-  background: #ffffff;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
+  background: #fdfdfb; /* soft cream */
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
 }
 
+/* General message block */
 .message {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
 }
 
+/* Sender labels */
+.message strong {
+  font-size: 0.8rem;
+  color: #004d33; /* dark green */
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+/* User bubble */
 .message.you {
+  align-self: flex-end;
   text-align: right;
 }
 
+.message.you .bubble {
+  background: #fdfdfb; /* soft cream */
+  border: 1px solid #9fc5b6; /* sage green */
+  color: #004d33; /* dark green */
+  border-radius: 15px 15px 0 15px;
+  padding: 10px 15px;
+  display: inline-block;
+}
+
+/* Assistant bubble */
 .message.assistant {
+  align-self: flex-start;
   text-align: left;
+}
+
+.message.assistant .bubble {
+  background: #9fc5b6; /* sage green */
+  border: 1px solid #6fa58f;
+  color: #004d33;
+  border-radius: 15px 15px 15px 0;
+  padding: 10px 15px;
+  display: inline-block;
 }
 
 .assistant-section strong {
   display: block;
   margin-bottom: 5px;
-  color: #222;
+  color: #004d33;
 }
 
 .assistant-section ul {
@@ -53,11 +88,12 @@ h2 {
   list-style-type: disc;
 }
 
+/* Input area */
 .input-container {
   display: flex;
   padding: 10px;
-  border-top: 1px solid #ddd;
-  background: #fafafa;
+  border-top: 1px solid #ccc;
+  background: #e6f4f0;
   position: sticky;
   bottom: 0;
 }
@@ -65,7 +101,7 @@ h2 {
 .input-container input {
   flex: 1;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #9fc5b6;
   border-radius: 6px;
   font-size: 1rem;
   outline: none;
@@ -74,7 +110,7 @@ h2 {
 .input-container button {
   margin-left: 10px;
   padding: 12px 20px;
-  background: #0069d9;
+  background: #006241; /* Wingstop green */
   color: white;
   border: none;
   border-radius: 6px;
@@ -84,5 +120,5 @@ h2 {
 }
 
 .input-container button:hover {
-  background: #0056b3;
+  background: #004d33; /* darker Wingstop green */
 }
