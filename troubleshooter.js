@@ -25,9 +25,15 @@ async function loadWord(filePath) {
 async function loadJSON(filePath) {
   const rawData = fs.readFileSync(filePath);
   const jsonData = JSON.parse(rawData);
-  return JSON.stringify(jsonData, null, 2);
+  
+  return jsonData.map(item => 
+    `System: ${item.system}
+Vendor: ${item.vendor}
+Problem: ${item.problem}
+What to try first: ${item.what_to_try_first.join(" ")}
+When to call support: ${item.when_to_call_support}`
+  ).join("\n\n");
 }
-
 // --- Search Function ---
 
 async function searchDocs(query) {
