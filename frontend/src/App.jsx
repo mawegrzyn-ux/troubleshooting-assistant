@@ -70,12 +70,15 @@ function App() {
       <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
-            <strong>{msg.sender === "you" ? "You" : "Assistant"}:</strong>
-            {msg.sender === "assistant"
-              ? renderAssistantMessage(msg.text)
-              : <p>{msg.text}</p>}
+            <strong>{msg.sender === "you" ? "YOU" : "ASSISTANT"}:</strong>
+            <div className="bubble">
+              {msg.sender === "assistant"
+                ? renderAssistantMessage(msg.text)
+                : <p>{msg.text}</p>}
+            </div>
           </div>
         ))}
+
       </div>
       <div className="input-container">
         <input
