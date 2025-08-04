@@ -25,16 +25,18 @@ async function loadJSON(filePath) {
   const rawData = fs.readFileSync(filePath);
   const jsonData = JSON.parse(rawData);
 
-  // Return an array of mini-documents (one per problem)
   return jsonData.map(item => ({
     pageContent: `Problem: ${item.problem}
-System: ${item.system}
-Vendor: ${item.vendor}
 Steps: ${item.what_to_try_first.join(" ")}
 When to call support: ${item.when_to_call_support}`,
-    metadata: { system: item.system, vendor: item.vendor, problem: item.problem }
+    metadata: { 
+      system: item.system.toLowerCase(), 
+      vendor: item.vendor.toLowerCase(), 
+      problem: item.problem.toLowerCase() 
+    }
   }));
 }
+
 // --- Search Function ---
 
 async function searchDocs(query) {
