@@ -18,7 +18,7 @@ app.post("/chat", async (req, res) => {
     res.status(500).json({ error: "Something went wrong" });
   }
 });
-
+app.use(express.static("."));
 app.listen(3000, () => {
   console.log("Assistant backend running on port 3000");
 });
