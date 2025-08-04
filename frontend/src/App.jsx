@@ -25,69 +25,36 @@ function App() {
     setInput("");
   };
 
-  const renderAssistantMessage = (text) => {
-    return (
-      <div className="assistant-section">
-        {text.split("- ").map((section, i) => {
-          if (section.startsWith("Problem:")) {
-            return (
-              <p key={i}>
-                <strong>Problem:</strong> {section.replace("Problem:", "").trim()}
-              </p>
-            );
-          }
-          if (section.startsWith("Steps:")) {
-            const steps = section
-              .replace("Steps:", "")
-              .split("•")
-              .filter((s) => s.trim().length > 0);
-            return (
-              <div key={i}>
-                <strong>Steps:</strong>
-                <ul>
-                  {steps.map((step, j) => (
-                    <li key={j}>{step.trim()}</li>
-                  ))}
-                </ul>
-              </div>
-            );
-          }
-          if (section.startsWith("When to call support:")) {
-            return (
-              <p key={i}>
-                <strong>When to call support:</strong>{" "}
-                {section.replace("When to call support:", "").trim()}
-              </p>
-            );
-          }
-          return null;
-        })}
-      </div>
-    );
-  };
+const renderAssistantMessage = (text) => {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+
+  let problem = "";
+  let steps = [];
+  let support = "";
+
+  lines.forEach((line) => {
+    if (line.startsWith("Problem:")) {
+      problem = line.replace("Problem:", "").trim();
+    } else if (line.startsWith("•") || line.toLowerCase().startsWith("step")) {
+      steps.push(line.replace("•", "").trim());
+    } else if (line.startsWith("When to call support:")) {
+      support = line.replace("When to call support:", "").trim();
+    }
+  });
 
   return (
-    <div className="chat-container">
-      <h2>AI Troubleshooting Assistant</h2>
-      <div className="chat-box">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.sender}`}>
-            <strong>{msg.sender === "you" ? "You" : "Assistant"}:</strong>
-            {msg.sender === "assistant" ? renderAssistantMessage(msg.text) : <p>{msg.text}</p>}
-          </div>
-        ))}
-      </div>
-      <div className="input-container">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-        />
-        <button onClick={sendMessage}>Send</button>
-      </div>
+    <div className="assistant-section">
+      {problem && <p><strong>Problem:</strong> {problem}</p>}
+      {steps.length > 0 && (
+        <div>
+          <strong>Steps:</strong>
+          <ul>
+            {steps.map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
+        </div>
+      )}
+      {support && <p><strong>When to call support:</strong> {support}</p>}
     </div>
   );
-}
-
+};
 export default App;
