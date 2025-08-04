@@ -68,9 +68,15 @@ export async function getTroubleshootingAnswer(query) {
   const results = await searchDocs(query);
   const context = results.join("\n\n");
 
-  const prompt = `You are a troubleshooting assistant. 
-Use ONLY the context provided to answer the question.
-If the answer is not in the context, reply: "I don’t know, please contact support."
+const prompt = `You are a troubleshooting assistant. 
+Answer the question ONLY using the context below.
+Return your answer in this format:
+- Problem: <problem>
+- Steps:
+  • Step 1
+  • Step 2
+  • Step 3
+- When to call support: <support condition>
 
 Context:
 ${context}
