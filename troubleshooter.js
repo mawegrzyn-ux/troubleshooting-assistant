@@ -45,7 +45,18 @@ async function searchDocs(query) {
   for (let doc of catalog) {
     if (doc.type === "json") {
       const entries = await loadJSON(doc.path);
-      docs = docs.concat(entries);
+
+      // Filter by metadata if system/vendor words appear in query
+      const filtered = entries.filter(entry => {
+        const q = query.toLowerCase();
+        return (
+          q.includes(entry.metadata.system) ||
+          q.includes(entry.metadata.vendor) ||
+          q.includes(entry.metadata.problem.split(" ")[0]) // quick problem keyword
+        );
+      });
+
+      docs = docs.concat(filtered.length > 0 ? filtered : entries);
     }
   }
 
@@ -54,9 +65,10 @@ async function searchDocs(query) {
     new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
   );
 
-  const results = await vectorStore.similaritySearch(query, 1); // best match only
+  const results = await vectorStore.similaritySearch(query, 1);
   return results.map(r => r.pageContent);
 }
+
 
 
 // --- Main Answer Function ---
