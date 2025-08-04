@@ -1,116 +1,93 @@
 import { useState } from "react";
-
+import "./App.css";
 
 function App() {
-
   const [messages, setMessages] = useState([]);
-
   const [input, setInput] = useState("");
 
-
   const sendMessage = async () => {
-
     if (!input.trim()) return;
-
-
-    // Add user's message to the chat
-
-    setMessages([...messages, { sender: "You", text: input }]);
-
+    setMessages([...messages, { sender: "you", text: input }]);
 
     try {
-
-      const res = await fetch("http://35.179.32.94:3000/chat", {
-
+      const res = await fetch("http://YOUR_LIGHTSAIL_PUBLIC_IP:3000/chat", {
         method: "POST",
-
         headers: { "Content-Type": "application/json" },
-
         body: JSON.stringify({ message: input }),
-
       });
-
       const data = await res.json();
 
-
-      setMessages((prev) => [...prev, { sender: "Assistant", text: data.reply }]);
-
+      setMessages((prev) => [...prev, { sender: "assistant", text: data.reply }]);
     } catch (error) {
-
-      setMessages((prev) => [...prev, { sender: "Assistant", text: "Error: " + error }]);
-
+      setMessages((prev) => [...prev, { sender: "assistant", text: "Error: " + error }]);
     }
 
-
     setInput("");
-
   };
 
+  const renderAssistantMessage = (text) => {
+    return (
+      <div className="assistant-section">
+        {text.split("- ").map((section, i) => {
+          if (section.startsWith("Problem:")) {
+            return (
+              <p key={i}>
+                <strong>Problem:</strong> {section.replace("Problem:", "").trim()}
+              </p>
+            );
+          }
+          if (section.startsWith("Steps:")) {
+            const steps = section
+              .replace("Steps:", "")
+              .split("•")
+              .filter((s) => s.trim().length > 0);
+            return (
+              <div key={i}>
+                <strong>Steps:</strong>
+                <ul>
+                  {steps.map((step, j) => (
+                    <li key={j}>{step.trim()}</li>
+                  ))}
+                </ul>
+              </div>
+            );
+          }
+          if (section.startsWith("When to call support:")) {
+            return (
+              <p key={i}>
+                <strong>When to call support:</strong>{" "}
+                {section.replace("When to call support:", "").trim()}
+              </p>
+            );
+          }
+          return null;
+        })}
+      </div>
+    );
+  };
 
   return (
-
-    <div style={{ maxWidth: "600px", margin: "20px auto", fontFamily: "Arial" }}>
-
+    <div className="chat-container">
       <h2>AI Troubleshooting Assistant</h2>
-
-      <div
-
-        style={{
-
-          border: "1px solid #ccc",
-
-          padding: "10px",
-
-          height: "400px",
-
-          overflowY: "auto",
-
-          marginBottom: "10px",
-
-          background: "#f9f9f9",
-
-        }}
-
-      >
-
+      <div className="chat-box">
         {messages.map((msg, index) => (
-
-          <div key={index}>
-
-            <strong>{msg.sender}:</strong> {msg.text}
-
+          <div key={index} className={`message ${msg.sender}`}>
+            <strong>{msg.sender === "you" ? "You" : "Assistant"}:</strong>
+            {msg.sender === "assistant" ? renderAssistantMessage(msg.text) : <p>{msg.text}</p>}
           </div>
-
         ))}
-
       </div>
-
-      <input
-
-        style={{ width: "80%", padding: "10px" }}
-
-        value={input}
-
-        onChange={(e) => setInput(e.target.value)}
-
-        placeholder="Type your message..."
-
-        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-
-      />
-
-      <button style={{ width: "18%", padding: "10px" }} onClick={sendMessage}>
-
-        Send
-
-      </button>
-
+      <div className="input-container">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
-
   );
-
 }
 
-
 export default App;
-
