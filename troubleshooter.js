@@ -1,10 +1,8 @@
 import fs from "fs";
-import pdfParse from "pdf-parse";
-import mammoth from "mammoth";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { OpenAI } from "langchain/llms/openai";
 import dotenv from "dotenv";
+import { OpenAI } from "@langchain/openai";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 dotenv.config();
 
