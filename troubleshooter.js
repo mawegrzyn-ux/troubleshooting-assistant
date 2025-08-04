@@ -1,4 +1,4 @@
-import catalog from "./data/catalog.json" assert { type: "json" };
+import catalog from "./data/catalog.json" with { type: "json" };
 import fs from "fs";
 import dotenv from "dotenv";
 import { OpenAI } from "@langchain/openai";
