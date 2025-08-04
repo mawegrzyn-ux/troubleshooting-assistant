@@ -10,51 +10,84 @@ function App() {
     setMessages([...messages, { sender: "you", text: input }]);
 
     try {
-      const res = await fetch("http://YOUR_LIGHTSAIL_PUBLIC_IP:3000/chat", {
+      const res = await fetch("http://35.179.32.94:3000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
       });
       const data = await res.json();
 
-      setMessages((prev) => [...prev, { sender: "assistant", text: data.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "assistant", text: data.reply },
+      ]);
     } catch (error) {
-      setMessages((prev) => [...prev, { sender: "assistant", text: "Error: " + error }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "assistant", text: "Error: " + error },
+      ]);
     }
 
     setInput("");
   };
 
-const renderAssistantMessage = (text) => {
-  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const renderAssistantMessage = (text) => {
+    const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
 
-  let problem = "";
-  let steps = [];
-  let support = "";
+    let problem = "";
+    let steps = [];
+    let support = "";
 
-  lines.forEach((line) => {
-    if (line.startsWith("Problem:")) {
-      problem = line.replace("Problem:", "").trim();
-    } else if (line.startsWith("•") || line.toLowerCase().startsWith("step")) {
-      steps.push(line.replace("•", "").trim());
-    } else if (line.startsWith("When to call support:")) {
-      support = line.replace("When to call support:", "").trim();
-    }
-  });
+    lines.forEach((line) => {
+      if (line.startsWith("Problem:")) {
+        problem = line.replace("Problem:", "").trim();
+      } else if (line.startsWith("•") || line.toLowerCase().startsWith("step")) {
+        steps.push(line.replace("•", "").trim());
+      } else if (line.startsWith("When to call support:")) {
+        support = line.replace("When to call support:", "").trim();
+      }
+    });
+
+    return (
+      <div className="assistant-section">
+        {problem && <p><strong>Problem:</strong> {problem}</p>}
+        {steps.length > 0 && (
+          <div>
+            <strong>Steps:</strong>
+            <ul>
+              {steps.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+        )}
+        {support && <p><strong>When to call support:</strong> {support}</p>}
+      </div>
+    );
+  };
 
   return (
-    <div className="assistant-section">
-      {problem && <p><strong>Problem:</strong> {problem}</p>}
-      {steps.length > 0 && (
-        <div>
-          <strong>Steps:</strong>
-          <ul>
-            {steps.map((s, i) => <li key={i}>{s}</li>)}
-          </ul>
-        </div>
-      )}
-      {support && <p><strong>When to call support:</strong> {support}</p>}
+    <div className="chat-container">
+      <h2>AI Troubleshooting Assistant</h2>
+      <div className="chat-box">
+        {messages.map((msg, index) => (
+          <div key={index} className={`message ${msg.sender}`}>
+            <strong>{msg.sender === "you" ? "You" : "Assistant"}:</strong>
+            {msg.sender === "assistant"
+              ? renderAssistantMessage(msg.text)
+              : <p>{msg.text}</p>}
+          </div>
+        ))}
+      </div>
+      <div className="input-container">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
     </div>
   );
-};
+}
+
 export default App;
