@@ -61,7 +61,8 @@ async function searchDocs(query) {
 
 const model = new OpenAI({
   temperature: 0.2,
-  openAIApiKey: process.env.OPENAI_API_KEY
+  openAIApiKey: process.env.OPENAI_API_KEY,
+  maxTokens: 500
 });
 
 export async function getTroubleshootingAnswer(query) {
