@@ -62,7 +62,9 @@ h2 {
   padding: 10px 15px;
   display: inline-block;
   position: relative;
+  margin-left: auto; /* ✅ pushes bubble to the right */
 }
+
 
 .message.you .bubble::after {
   content: "";
