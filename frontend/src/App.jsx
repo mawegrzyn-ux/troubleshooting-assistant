@@ -66,7 +66,7 @@ const renderAssistantMessage = (text) => {
 };
   return (
     <div className="chat-container">
-      <h2>AI Troubleshooting Assistant</h2>
+     <img src="/wingsgtop_logo.png" alt="Wingstop Logo" className="app-logo" />
       <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
