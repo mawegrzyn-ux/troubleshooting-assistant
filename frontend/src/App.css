@@ -8,7 +8,7 @@ body {
 }
 .app-logo {
   display: block;
-  margin: 20px auto 10px;
+  margin: 0px auto 0px;
   max-height: 128px;   /* ✅ limit height */
   width: auto;         /* keep aspect ratio */
 }
