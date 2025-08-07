@@ -7,7 +7,6 @@ function App() {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
     setMessages([...messages, { sender: "you", text: input }]);
 
     try {
@@ -18,17 +17,10 @@ function App() {
       });
       const data = await res.json();
 
-      if (data.results) {
-        setMessages((prev) => [
-          ...prev,
-          { sender: "assistant", results: data.results },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { sender: "assistant", text: "No results found." },
-        ]);
-      }
+      setMessages((prev) => [
+        ...prev,
+        { sender: "assistant", text: data.reply },
+      ]);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -39,38 +31,54 @@ function App() {
     setInput("");
   };
 
-  const renderAssistantResults = (results) => (
-    <div className="assistant-section">
-      {results.map((item, index) => (
-        <div className="result-block" key={index}>
-          <p><strong>Problem:</strong> {item.problem}</p>
-          <strong>Steps:</strong>
-          <ul>
-            {item.steps.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ul>
-          <p><strong>When to call support:</strong> {item.support}</p>
-        </div>
-      ))}
-    </div>
-  );
+const renderAssistantMessage = (text) => {
+  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+
+  let problem = "";
+  let steps = [];
+  let support = "";
+
+  lines.forEach((line) => {
+    if (line.toLowerCase().startsWith("problem")) {
+      problem = line.replace(/Problem:/i, "").trim();
+    } else if (line.startsWith("•") || line.toLowerCase().startsWith("step")) {
+      steps.push(line.replace("•", "").trim());
+    } else if (line.toLowerCase().startsWith("when to call support")) {
+      support = line.replace(/When to call support:/i, "").trim();
+    }
+  });
 
   return (
+    <div className="assistant-section">
+      {problem && <p><strong>Problem:</strong> {problem}</p>}
+      {steps.length > 0 && (
+        <div>
+          <strong>Steps:</strong>
+          <ul>
+            {steps.map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
+        </div>
+      )}
+      {support && <p><strong>When to call support:</strong> {support}</p>}
+      {!problem && !steps.length && !support && <p>{text}</p>}
+    </div>
+  );
+};
+  return (
     <div className="chat-container">
-      <img src="/wingsgtop_logo.png" alt="Wingstop Logo" className="app-logo" />
-      <h2>AI Troubleshooting Assistant</h2>
+     <img src="/wingsgtop_logo.png" alt="Wingstop Logo" className="app-logo" />
       <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
             <strong>{msg.sender === "you" ? "YOU" : "ASSISTANT"}:</strong>
             <div className="bubble">
-              {msg.sender === "assistant" && msg.results
-                ? renderAssistantResults(msg.results)
+              {msg.sender === "assistant"
+                ? renderAssistantMessage(msg.text)
                 : <p>{msg.text}</p>}
             </div>
           </div>
         ))}
+
       </div>
       <div className="input-container">
         <input
