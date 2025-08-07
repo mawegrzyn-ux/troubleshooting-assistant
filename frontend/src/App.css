@@ -6,6 +6,13 @@ body {
   display: flex;
   flex-direction: column;
 }
+.result-block {
+  background: #fdfdfb;
+  border: 1px solid #9fc5b6;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
 .app-logo {
   display: block;
   margin: 0px auto 0px;
