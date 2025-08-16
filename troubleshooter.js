@@ -9,7 +9,6 @@ dotenv.config();
 const model = new OpenAI({
   temperature: 0.3,
   openAIApiKey: process.env.OPENAI_API_KEY,
-  maxTokens: 500,
 });
 
 // --- Intent Detection ---
@@ -23,11 +22,11 @@ Respond with only one word: "troubleshooting" or "casual"
 Message: "${query}"`;
 
   const intent = await model.call(intentPrompt);
+  console.log("Detected intent:", intent);
   return intent.trim().toLowerCase();
-  console.log(intent)
 }
 
-// --- Load JSON Catalog ---
+// --- Load JSON Troubleshooting Data ---
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -44,14 +43,13 @@ When to call support: ${item.when_to_call_support}`,
   }));
 }
 
-// --- Search ---
+// --- Vector Search ---
 async function searchDocs(query) {
   let allDocs = [];
 
   for (let doc of catalog) {
     if (doc.type === "json") {
       const entries = await loadJSON(doc.path);
-
       const filtered = entries.filter((entry) => {
         const q = query.toLowerCase();
         return (
@@ -60,7 +58,6 @@ async function searchDocs(query) {
           q.includes(entry.metadata.problem.split(" ")[0])
         );
       });
-
       allDocs = allDocs.concat(filtered.length > 0 ? filtered : entries);
     }
   }
@@ -73,13 +70,15 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-// --- Main Handler ---
+// --- Public Entry Point ---
 export async function getTroubleshootingResponse(query) {
   const intent = await detectIntent(query);
 
-  if (intent === "casual") {
-    const response = await model.call(`Respond casually to this message as a helpful assistant: "${query}"`);
-    return { text: response };
+  if (intent !== "troubleshooting") {
+    const casualReply = await model.call(
+      `Respond casually to this message as a helpful assistant: "${query}"`
+    );
+    return { text: casualReply };
   }
 
   const results = await searchDocs(query);
@@ -87,7 +86,6 @@ export async function getTroubleshootingResponse(query) {
   return {
     results: results.map((entry) => {
       const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
-
       const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
       const steps = lines.filter((l) =>
         l.startsWith("•") || l.toLowerCase().startsWith("step")
@@ -102,10 +100,10 @@ export async function getTroubleshootingResponse(query) {
         support: support.replace(/When to call support:/i, "").trim(),
         system: entry.metadata?.system || ""
       };
-    })
+    }),
   };
 }
 
 export async function initStore() {
-  // Optional initialization logic
+  // Optional startup logic
 }
