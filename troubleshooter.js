@@ -6,10 +6,10 @@ import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 dotenv.config();
 
-// Intent detection model
 const model = new OpenAI({
   temperature: 0.3,
-  openAIApiKey: process.env.OPENAI_API_KEY
+  openAIApiKey: process.env.OPENAI_API_KEY,
+  maxTokens: 500,
 });
 
 // --- Intent Detection ---
@@ -26,7 +26,7 @@ Message: "${query}"`;
   return intent.trim().toLowerCase();
 }
 
-// --- Load JSON Data ---
+// --- Load JSON Catalog ---
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -43,7 +43,7 @@ When to call support: ${item.when_to_call_support}`,
   }));
 }
 
-// --- Search Function ---
+// --- Search ---
 async function searchDocs(query) {
   let allDocs = [];
 
@@ -72,40 +72,39 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-// --- Public Entry Point ---
-export async function getTroubleshootingMatches(query) {
+// --- Main Handler ---
+export async function getTroubleshootingResponse(query) {
   const intent = await detectIntent(query);
 
-  if (intent !== "troubleshooting") {
-    return [{
-      problem: "👋 Hello!",
-      system: "",
-      steps: ["I'm here to help troubleshoot issues. Just describe the problem you're facing."],
-      support: ""
-    }];
+  if (intent === "casual") {
+    const response = await model.call(`Respond casually to this message as a helpful assistant: "${query}"`);
+    return { text: response };
   }
 
   const results = await searchDocs(query);
 
-  return results.map((entry) => {
-    const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
-    const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
-    const steps = lines.filter((l) =>
-      l.startsWith("•") || l.toLowerCase().startsWith("step")
-    );
-    const support = lines.find((l) =>
-      l.toLowerCase().startsWith("when to call support")
-    ) || "";
+  return {
+    results: results.map((entry) => {
+      const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
 
-    return {
-      problem: problem.replace(/Problem:/i, "").trim(),
-      steps: steps.map((s) => s.replace("•", "").trim()),
-      support: support.replace(/When to call support:/i, "").trim(),
-      system: entry.metadata?.system || ""
-    };
-  });
+      const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
+      const steps = lines.filter((l) =>
+        l.startsWith("•") || l.toLowerCase().startsWith("step")
+      );
+      const support = lines.find((l) =>
+        l.toLowerCase().startsWith("when to call support")
+      ) || "";
+
+      return {
+        problem: problem.replace(/Problem:/i, "").trim(),
+        steps: steps.map((s) => s.replace("•", "").trim()),
+        support: support.replace(/When to call support:/i, "").trim(),
+        system: entry.metadata?.system || ""
+      };
+    })
+  };
 }
 
 export async function initStore() {
-  // Optional future init
+  // Optional initialization logic
 }
