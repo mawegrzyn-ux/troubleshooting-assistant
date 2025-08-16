@@ -2,23 +2,39 @@ import catalog from "./data/catalog.json" with { type: "json" };
 import fs from "fs";
 import dotenv from "dotenv";
 import { OpenAIEmbeddings, OpenAI } from "@langchain/openai";
-import { MemoryVectorStore } f
-dotenv.config();rom "langchain/vectorstores/memory";
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
+dotenv.config();
 
+// Intent detection model
 const model = new OpenAI({
-  temperature: 0.5,
-  openAIApiKey: process.env.OPENAI_API_KEY,
-  maxTokens: 500,
+  temperature: 0.3,
+  openAIApiKey: process.env.OPENAI_API_KEY
 });
 
-// Load JSON data
+// --- Intent Detection ---
+async function detectIntent(query) {
+  const intentPrompt = `Classify the user's message into one of the following intents:
+- "troubleshooting" (if they describe a problem or issue with a system)
+- "casual" (if it's a greeting, thanks, or general talk)
+
+Respond with only one word: "troubleshooting" or "casual"
+
+Message: "${query}"`;
+
+  const intent = await model.call(intentPrompt);
+  return intent.trim().toLowerCase();
+}
+
+// --- Load JSON Data ---
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
 
   return jsonData.map((item) => ({
-    pageContent: `Problem: ${item.problem}\nSteps: ${item.what_to_try_first.join("\n")}\nWhen to call support: ${item.when_to_call_support}`,
+    pageContent: `Problem: ${item.problem}
+Steps: ${item.what_to_try_first.join("\n")}
+When to call support: ${item.when_to_call_support}`,
     metadata: {
       system: item.system?.toLowerCase(),
       vendor: item.vendor?.toLowerCase(),
@@ -27,6 +43,7 @@ async function loadJSON(filePath) {
   }));
 }
 
+// --- Search Function ---
 async function searchDocs(query) {
   let allDocs = [];
 
@@ -55,46 +72,40 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-export async function getTroubleshootingResponse(query) {
-  const intentPrompt = `You are an intent detector. Decide if the user's message is about a technical problem. Respond only with "yes" or "no".
-Message: "${query}"`;
+// --- Public Entry Point ---
+export async function getTroubleshootingMatches(query) {
+  const intent = await detectIntent(query);
 
-  const intent = await model.call(intentPrompt);
-  const isTroubleshooting = intent.trim().toLowerCase().startsWith("yes");
-
-  if (!isTroubleshooting) {
-    const casualReply = await model.call(
-      `Respond casually to this message as a helpful assistant: "${query}"`
-    );
-    return { text: casualReply };
+  if (intent !== "troubleshooting") {
+    return [{
+      problem: "👋 Hello!",
+      system: "",
+      steps: ["I'm here to help troubleshoot issues. Just describe the problem you're facing."],
+      support: ""
+    }];
   }
 
   const results = await searchDocs(query);
 
-  return {
-    results: results.map((entry) => {
-      const lines = entry.pageContent
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
+  return results.map((entry) => {
+    const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
+    const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
+    const steps = lines.filter((l) =>
+      l.startsWith("•") || l.toLowerCase().startsWith("step")
+    );
+    const support = lines.find((l) =>
+      l.toLowerCase().startsWith("when to call support")
+    ) || "";
 
-      const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
-      const steps = lines.filter((l) =>
-        l.startsWith("•") || l.toLowerCase().startsWith("step")
-      );
-      const support = lines.find((l) =>
-        l.toLowerCase().startsWith("when to call support")
-      ) || "";
-
-      return {
-        problem: problem.replace(/Problem:/i, "").trim(),
-        steps: steps.map((s) => s.replace("•", "").trim()),
-        support: support.replace(/When to call support:/i, "").trim(),
-      };
-    }),
-  };
+    return {
+      problem: problem.replace(/Problem:/i, "").trim(),
+      steps: steps.map((s) => s.replace("•", "").trim()),
+      support: support.replace(/When to call support:/i, "").trim(),
+      system: entry.metadata?.system || ""
+    };
+  });
 }
 
 export async function initStore() {
-  // Optional startup init if needed later
+  // Optional future init
 }
