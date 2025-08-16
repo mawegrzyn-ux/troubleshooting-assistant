@@ -75,3 +75,29 @@ function App() {
       <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
+            <strong className="sender-label">
+              {msg.sender === "you" ? "YOU" : "ASSISTANT"}:
+            </strong>
+            <div className="bubble">
+              {msg.sender === "assistant" && Array.isArray(msg.results)
+                ? renderAssistantResults(msg.results)
+                : <p>{msg.text || ""}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="input-container">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
+    </div>
+  );
+}
+
+export default App;
