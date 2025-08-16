@@ -24,6 +24,7 @@ Message: "${query}"`;
 
   const intent = await model.call(intentPrompt);
   return intent.trim().toLowerCase();
+  console.log(intent)
 }
 
 // --- Load JSON Catalog ---
