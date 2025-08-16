@@ -28,7 +28,10 @@ function App() {
       } else {
         setMessages((prev) => [
           ...prev,
-          { sender: "assistant", text: "No relevant troubleshooting steps found." },
+          {
+            sender: "assistant",
+            text: "No relevant troubleshooting steps found.",
+          },
         ]);
       }
     } catch (error) {
@@ -55,7 +58,20 @@ function App() {
             </ul>
           </div>
         )}
-        {item.support && <p><strong>When to call support:</strong> {item.support}</p>}
+        {item.support && (
+          <p><strong>When to call support:</strong> {item.support}</p>
+        )}
       </div>
     ));
   };
+
+  return (
+    <div className="chat-container">
+      <img
+        src="/wingsgtop_logo.png"
+        alt="Wingstop Logo"
+        className="app-logo"
+      />
+      <div className="chat-box">
+        {messages.map((msg, index) => (
+          <div key={index} className={`message ${msg.sender}`}>
