@@ -4,12 +4,14 @@ import "./App.css";
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedResult, setSelectedResult] = useState(null);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    // Add user message
+    // Reset selection
+    setSelectedResult(null);
+
     setMessages((prev) => [...prev, { sender: "you", text: input }]);
 
     try {
@@ -26,7 +28,6 @@ function App() {
           ...prev,
           { sender: "assistant", results: data.results },
         ]);
-        setSelectedIndex(null); // reset selected index for new query
       } else {
         setMessages((prev) => [
           ...prev,
@@ -46,48 +47,42 @@ function App() {
     setInput("");
   };
 
-  const renderAssistantResults = (results, selectedIndex, setSelectedIndex) => {
-    if (!results || results.length === 0) {
-      return <p>No relevant troubleshooting steps found.</p>;
-    }
-
-    return (
-      <div>
-        <div className="assistant-options">
-          {results.map((item, idx) => (
-            <div
-              key={idx}
-              className={`option-card ${selectedIndex === idx ? "active" : ""}`}
-              onClick={() => setSelectedIndex(idx)}
-            >
-              <strong>Problem:</strong> {item.problem} <br />
-              <strong>System:</strong> {item.system}
-            </div>
-          ))}
+  const renderOptionSelection = (results) => (
+    <div className="assistant-options">
+      {results.map((item, idx) => (
+        <div
+          key={idx}
+          className="option-card"
+          onClick={() => setSelectedResult(item)}
+        >
+          <strong>Problem:</strong> {item.problem} <br />
+          <strong>System:</strong> {item.system}
         </div>
+      ))}
+    </div>
+  );
 
-        {selectedIndex !== null && (
-          <div className="assistant-section">
-            <p><strong>Problem:</strong> {results[selectedIndex].problem}</p>
-            <p><strong>System:</strong> {results[selectedIndex].system}</p>
-            {results[selectedIndex].steps && results[selectedIndex].steps.length > 0 && (
-              <div>
-                <strong>Steps:</strong>
-                <ul>
-                  {results[selectedIndex].steps.map((step, i) => (
-                    <li key={i}>{step}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {results[selectedIndex].support && (
-              <p><strong>When to call support:</strong> {results[selectedIndex].support}</p>
-            )}
+  const renderSelectedResult = (item) => (
+    <div className="bubble">
+      <div className="assistant-section">
+        <p><strong>Problem:</strong> {item.problem}</p>
+        <p><strong>System:</strong> {item.system}</p>
+        {item.steps && item.steps.length > 0 && (
+          <div>
+            <strong>Steps:</strong>
+            <ul>
+              {item.steps.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ul>
           </div>
         )}
+        {item.support && (
+          <p><strong>When to call support:</strong> {item.support}</p>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
     <div className="chat-container">
@@ -103,12 +98,19 @@ function App() {
               {msg.sender === "you" ? "YOU" : "ASSISTANT"}:
             </strong>
             <div className="bubble">
-              {msg.sender === "assistant" && Array.isArray(msg.results)
-                ? renderAssistantResults(msg.results, selectedIndex, setSelectedIndex)
+              {msg.sender === "assistant" && msg.results
+                ? renderOptionSelection(msg.results)
                 : <p>{msg.text || ""}</p>}
             </div>
           </div>
         ))}
+
+        {selectedResult && (
+          <div className="message assistant">
+            <strong className="sender-label">ASSISTANT:</strong>
+            {renderSelectedResult(selectedResult)}
+          </div>
+        )}
       </div>
 
       <div className="input-container">
