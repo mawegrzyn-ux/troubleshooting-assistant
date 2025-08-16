@@ -49,21 +49,24 @@ export async function initStore() {
   );
 }
 
-export async function getTroubleshootingMatches(query, maxResults = 3) {
-  if (!vectorStore) {
-    await initStore();
-  }
+export async function getTroubleshootingMatches(query) {
+  const entries = await searchDocs(query);
 
-  const results = await vectorStore.similaritySearch(query, maxResults);
+  return entries.map(entry => {
+    const lines = entry.pageContent.split("\n").map(l => l.trim()).filter(Boolean);
 
-  return results.map((r) => {
+    const problemLine = lines.find(l => l.toLowerCase().startsWith("problem"));
+    const stepsLines = lines.filter(l =>
+      l.startsWith("•") || l.toLowerCase().startsWith("step")
+    );
+    const supportLine = lines.find(l =>
+      l.toLowerCase().startsWith("when to call support")
+    );
+
     return {
-      problem: r.metadata.problem,
-      steps: r.metadata.steps
-        ?.split("•")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      support: r.metadata.support,
+      problem: problemLine?.replace(/Problem:/i, "").trim() || "",
+      steps: stepsLines.map(line => line.replace("•", "").trim()),
+      support: supportLine?.replace(/When to call support:/i, "").trim() || ""
     };
   });
 }
