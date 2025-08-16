@@ -9,11 +9,12 @@ dotenv.config();
 const model = new OpenAI({
   temperature: 0.3,
   openAIApiKey: process.env.OPENAI_API_KEY,
+  maxTokens: 500,
 });
 
-// --- Intent Detection ---
+// Intent detection
 async function detectIntent(query) {
-  const intentPrompt = `Classify the user's message into one of the following intents:
+  const prompt = `Classify the user's message into one of the following intents:
 - "troubleshooting" (if they describe a problem or issue with a system)
 - "casual" (if it's a greeting, thanks, or general talk)
 
@@ -21,12 +22,11 @@ Respond with only one word: "troubleshooting" or "casual"
 
 Message: "${query}"`;
 
-  const intent = await model.call(intentPrompt);
-  console.log("Detected intent:", intent);
-  return intent.trim().toLowerCase();
+  const response = await model.call(prompt);
+  return response.trim().toLowerCase();
 }
 
-// --- Load JSON Data ---
+// Load JSON documents
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -43,13 +43,14 @@ When to call support: ${item.when_to_call_support}`,
   }));
 }
 
-// --- Vector Search ---
+// Search vector store
 async function searchDocs(query) {
   let allDocs = [];
 
   for (let doc of catalog) {
     if (doc.type === "json") {
       const entries = await loadJSON(doc.path);
+
       const filtered = entries.filter((entry) => {
         const q = query.toLowerCase();
         return (
@@ -71,22 +72,26 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-// --- Main Exported Function ---
+// Entry point
 export async function getTroubleshootingResponse(query) {
   const intent = await detectIntent(query);
+  console.log("Intent detected:", intent);
 
   if (intent !== "troubleshooting") {
-    const casualReply = await model.call(
-      `Respond casually to this message as a helpful assistant: "${query}"`
+    const reply = await model.call(
+      `You are a friendly assistant. Respond conversationally to this message: "${query}"`
     );
-    return { text: casualReply };
+    return { text: reply };
   }
 
   const results = await searchDocs(query);
 
   return {
     results: results.map((entry) => {
-      const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
+      const lines = entry.pageContent
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
 
       const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
       const steps = lines.filter((l) =>
@@ -100,7 +105,7 @@ export async function getTroubleshootingResponse(query) {
         problem: problem.replace(/Problem:/i, "").trim(),
         steps: steps.map((s) => s.replace("•", "").trim()),
         support: support.replace(/When to call support:/i, "").trim(),
-        system: entry.metadata?.system || ""
+        system: entry.metadata?.system || "",
       };
     }),
   };
