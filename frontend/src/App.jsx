@@ -4,11 +4,12 @@ import "./App.css";
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [selectedResultIndex, setSelectedResultIndex] = useState(null);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+    setSelectedResultIndex(null); // Reset any previous selection
 
-    // Add user message
     setMessages((prev) => [...prev, { sender: "you", text: input }]);
 
     try {
@@ -44,34 +45,41 @@ function App() {
     setInput("");
   };
 
-  const renderAssistantResults = (results) => {
-    return results.map((item, idx) => (
-      <div key={idx} className="assistant-section">
-        {item.problem && <p><strong>Problem:</strong> {item.problem}</p>}
-        {item.steps && (
-          <div>
-            <strong>Steps:</strong>
-            <ul>
-              {item.steps.map((step, i) => (
-                <li key={i}>{step}</li>
-              ))}
-            </ul>
+  const renderAssistantOptions = (results) => {
+    return (
+      <div className="assistant-options">
+        {results.map((item, idx) => (
+          <div
+            key={idx}
+            className={`option-card ${selectedResultIndex === idx ? "active" : ""}`}
+            onClick={() => setSelectedResultIndex(idx)}
+          >
+            <p><strong>Problem:</strong> {item.problem}</p>
+            <p><strong>System:</strong> {item.system}</p>
+          </div>
+        ))}
+
+        {selectedResultIndex !== null && results[selectedResultIndex] && (
+          <div className="assistant-section">
+            <p><strong>Problem:</strong> {results[selectedResultIndex].problem}</p>
+            <div>
+              <strong>Steps:</strong>
+              <ul>
+                {results[selectedResultIndex].steps.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            </div>
+            <p><strong>When to call support:</strong> {results[selectedResultIndex].support}</p>
           </div>
         )}
-        {item.support && (
-          <p><strong>When to call support:</strong> {item.support}</p>
-        )}
       </div>
-    ));
+    );
   };
 
   return (
     <div className="chat-container">
-      <img
-        src="/wingsgtop_logo.png"
-        alt="Wingstop Logo"
-        className="app-logo"
-      />
+      <img src="/wingsgtop_logo.png" alt="Wingstop Logo" className="app-logo" />
       <div className="chat-box">
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender}`}>
@@ -80,7 +88,7 @@ function App() {
             </strong>
             <div className="bubble">
               {msg.sender === "assistant" && Array.isArray(msg.results)
-                ? renderAssistantResults(msg.results)
+                ? renderAssistantOptions(msg.results)
                 : <p>{msg.text || ""}</p>}
             </div>
           </div>
