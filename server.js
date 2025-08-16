@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getTroubleshootingMatches, initStore } from "./troubleshooter.js";
+import { getTroubleshootingResponse, initStore } from "./troubleshooter.js";
 
 dotenv.config();
 
@@ -15,22 +15,22 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// Updated Chat Endpoint
+// Chat endpoint
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
-    const results = await getTroubleshootingMatches(message);
-    res.json({ results });
+    const reply = await getTroubleshootingResponse(message);
+    res.json(reply); // can be { results } or { text }
   } catch (err) {
     console.error("Error in /chat:", err);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
-// Serve frontend build (React)
+// Serve frontend
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
-// React Router fallback
+// React router fallback
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
 });
