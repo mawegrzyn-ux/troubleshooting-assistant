@@ -26,7 +26,7 @@ Message: "${query}"`;
   return intent.trim().toLowerCase();
 }
 
-// --- Load JSON Troubleshooting Data ---
+// --- Load JSON Data ---
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -58,6 +58,7 @@ async function searchDocs(query) {
           q.includes(entry.metadata.problem.split(" ")[0])
         );
       });
+
       allDocs = allDocs.concat(filtered.length > 0 ? filtered : entries);
     }
   }
@@ -70,7 +71,7 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-// --- Public Entry Point ---
+// --- Main Exported Function ---
 export async function getTroubleshootingResponse(query) {
   const intent = await detectIntent(query);
 
@@ -86,6 +87,7 @@ export async function getTroubleshootingResponse(query) {
   return {
     results: results.map((entry) => {
       const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
+
       const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
       const steps = lines.filter((l) =>
         l.startsWith("•") || l.toLowerCase().startsWith("step")
