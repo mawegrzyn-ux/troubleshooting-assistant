@@ -1,37 +1,24 @@
-  import catalog from "./data/catalog.json" with { type: "json" };
+import catalog from "./data/catalog.json" with { type: "json" };
 import fs from "fs";
 import dotenv from "dotenv";
-import { OpenAI } from "@langchain/openai";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { OpenAIEmbeddings, OpenAI } from "@langchain/openai";
+import { MemoryVectorStore } f
+dotenv.config();rom "langchain/vectorstores/memory";
 
-dotenv.config();
 
 const model = new OpenAI({
-  temperature: 0.3,
+  temperature: 0.5,
   openAIApiKey: process.env.OPENAI_API_KEY,
+  maxTokens: 500,
 });
 
-async function detectIntent(input) {
-  const prompt = `Determine if this user message is a troubleshooting request or just general conversation.
-
-Message: "${input}"
-
-Answer with only one word: "troubleshooting" or "chat".`;
-
-  const response = await model.call(prompt);
-  return response.trim().toLowerCase();
-}
-
+// Load JSON data
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
 
   return jsonData.map((item) => ({
-    pageContent: `Problem: ${item.problem}
-System: ${item.system}
-Steps: ${item.what_to_try_first.join("\n")}
-When to call support: ${item.when_to_call_support}`,
+    pageContent: `Problem: ${item.problem}\nSteps: ${item.what_to_try_first.join("\n")}\nWhen to call support: ${item.when_to_call_support}`,
     metadata: {
       system: item.system?.toLowerCase(),
       vendor: item.vendor?.toLowerCase(),
@@ -68,24 +55,30 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-export async function getTroubleshootingMatches(query) {
-  const intent = await detectIntent(query);
+export async function getTroubleshootingResponse(query) {
+  const intentPrompt = `You are an intent detector. Decide if the user's message is about a technical problem. Respond only with "yes" or "no".
+Message: "${query}"`;
 
-  if (intent !== "troubleshooting") {
-    // Non-troubleshooting query
-    return {
-      generalResponse: `Hi there! 👋 I'm your troubleshooting assistant. If you're having an issue with POS, kiosks, or other systems, just describe the problem and I'll help!`,
-    };
+  const intent = await model.call(intentPrompt);
+  const isTroubleshooting = intent.trim().toLowerCase().startsWith("yes");
+
+  if (!isTroubleshooting) {
+    const casualReply = await model.call(
+      `Respond casually to this message as a helpful assistant: "${query}"`
+    );
+    return { text: casualReply };
   }
 
   const results = await searchDocs(query);
 
   return {
-    matches: results.map((entry) => {
-      const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
+    results: results.map((entry) => {
+      const lines = entry.pageContent
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
 
       const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
-      const system = lines.find((l) => l.toLowerCase().startsWith("system")) || "";
       const steps = lines.filter((l) =>
         l.startsWith("•") || l.toLowerCase().startsWith("step")
       );
@@ -95,7 +88,6 @@ export async function getTroubleshootingMatches(query) {
 
       return {
         problem: problem.replace(/Problem:/i, "").trim(),
-        system: system.replace(/System:/i, "").trim(),
         steps: steps.map((s) => s.replace("•", "").trim()),
         support: support.replace(/When to call support:/i, "").trim(),
       };
@@ -104,5 +96,5 @@ export async function getTroubleshootingMatches(query) {
 }
 
 export async function initStore() {
-  // Optional init logic
+  // Optional startup init if needed later
 }
