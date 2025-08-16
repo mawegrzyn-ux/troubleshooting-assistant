@@ -10,7 +10,7 @@ function App() {
     if (!input.trim()) return;
 
     setMessages((prev) => [...prev, { sender: "you", text: input }]);
-    setSelectedResult(null;
+    setSelectedResult(null);
 
     try {
       const res = await fetch("http://35.179.32.94:3000/chat", {
