@@ -1,38 +1,35 @@
-import catalog from "./data/catalog.json" with { type: "json" };
+  import catalog from "./data/catalog.json" with { type: "json" };
 import fs from "fs";
 import dotenv from "dotenv";
-import { OpenAIEmbeddings, OpenAI } from "@langchain/openai";
+import { OpenAI } from "@langchain/openai";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 dotenv.config();
 
-// Intent detection model
 const model = new OpenAI({
   temperature: 0.3,
-  openAIApiKey: process.env.OPENAI_API_KEY
+  openAIApiKey: process.env.OPENAI_API_KEY,
 });
 
-// --- Intent Detection ---
-async function detectIntent(query) {
-  const intentPrompt = `Classify the user's message into one of the following intents:
-- "troubleshooting" (if they describe a problem or issue with a system)
-- "casual" (if it's a greeting, thanks, or general talk)
+async function detectIntent(input) {
+  const prompt = `Determine if this user message is a troubleshooting request or just general conversation.
 
-Respond with only one word: "troubleshooting" or "casual"
+Message: "${input}"
 
-Message: "${query}"`;
+Answer with only one word: "troubleshooting" or "chat".`;
 
-  const intent = await model.call(intentPrompt);
-  return intent.trim().toLowerCase();
+  const response = await model.call(prompt);
+  return response.trim().toLowerCase();
 }
 
-// --- Load JSON Data ---
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
 
   return jsonData.map((item) => ({
     pageContent: `Problem: ${item.problem}
+System: ${item.system}
 Steps: ${item.what_to_try_first.join("\n")}
 When to call support: ${item.when_to_call_support}`,
     metadata: {
@@ -43,7 +40,6 @@ When to call support: ${item.when_to_call_support}`,
   }));
 }
 
-// --- Search Function ---
 async function searchDocs(query) {
   let allDocs = [];
 
@@ -72,40 +68,41 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-// --- Public Entry Point ---
 export async function getTroubleshootingMatches(query) {
   const intent = await detectIntent(query);
 
   if (intent !== "troubleshooting") {
-    return [{
-      problem: "👋 Hello!",
-      system: "",
-      steps: ["I'm here to help troubleshoot issues. Just describe the problem you're facing."],
-      support: ""
-    }];
+    // Non-troubleshooting query
+    return {
+      generalResponse: `Hi there! 👋 I'm your troubleshooting assistant. If you're having an issue with POS, kiosks, or other systems, just describe the problem and I'll help!`,
+    };
   }
 
   const results = await searchDocs(query);
 
-  return results.map((entry) => {
-    const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
-    const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
-    const steps = lines.filter((l) =>
-      l.startsWith("•") || l.toLowerCase().startsWith("step")
-    );
-    const support = lines.find((l) =>
-      l.toLowerCase().startsWith("when to call support")
-    ) || "";
+  return {
+    matches: results.map((entry) => {
+      const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
 
-    return {
-      problem: problem.replace(/Problem:/i, "").trim(),
-      steps: steps.map((s) => s.replace("•", "").trim()),
-      support: support.replace(/When to call support:/i, "").trim(),
-      system: entry.metadata?.system || ""
-    };
-  });
+      const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
+      const system = lines.find((l) => l.toLowerCase().startsWith("system")) || "";
+      const steps = lines.filter((l) =>
+        l.startsWith("•") || l.toLowerCase().startsWith("step")
+      );
+      const support = lines.find((l) =>
+        l.toLowerCase().startsWith("when to call support")
+      ) || "";
+
+      return {
+        problem: problem.replace(/Problem:/i, "").trim(),
+        system: system.replace(/System:/i, "").trim(),
+        steps: steps.map((s) => s.replace("•", "").trim()),
+        support: support.replace(/When to call support:/i, "").trim(),
+      };
+    }),
+  };
 }
 
 export async function initStore() {
-  // Optional future init
+  // Optional init logic
 }
