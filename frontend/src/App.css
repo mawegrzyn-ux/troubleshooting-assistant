@@ -160,3 +160,44 @@ h2 {
 .input-container button:hover {
   background: #004d33; /* darker Wingstop green */
 }
+/* Assistant Option Cards */
+.assistant-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.option-card {
+  background: #e0f1ec;
+  border: 1px solid #9fc5b6;
+  padding: 12px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.option-card:hover {
+  background: #cce7dc;
+  transform: scale(1.01);
+}
+
+.option-card.active {
+  background: #9fc5b6;
+  border-color: #6fa58f;
+}
+
+/* Selected Result Styling (within assistant bubble) */
+.assistant-section {
+  margin-top: 12px;
+}
+
+.assistant-section p,
+.assistant-section ul {
+  margin: 6px 0;
+}
+
+.assistant-section ul {
+  list-style: disc;
+  padding-left: 20px;
+}
