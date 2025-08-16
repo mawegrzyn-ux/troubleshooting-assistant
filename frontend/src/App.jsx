@@ -1,111 +1,129 @@
-import catalog from "./data/catalog.json" with { type: "json" };
-import fs from "fs";
-import dotenv from "dotenv";
-import { OpenAIEmbeddings, OpenAI } from "@langchain/openai";
-import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { useState } from "react";
+import "./App.css";
 
-dotenv.config();
+function App() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [selectedResult, setSelectedResult] = useState(null);
 
-// Intent detection model
-const model = new OpenAI({
-  temperature: 0.3,
-  openAIApiKey: process.env.OPENAI_API_KEY
-});
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-// --- Intent Detection ---
-async function detectIntent(query) {
-  const intentPrompt = `Classify the user's message into one of the following intents:
-- "troubleshooting" (if they describe a problem or issue with a system)
-- "casual" (if it's a greeting, thanks, or general talk)
+    // Reset selection
+    setSelectedResult(null);
 
-Respond with only one word: "troubleshooting" or "casual"
+    setMessages((prev) => [...prev, { sender: "you", text: input }]);
 
-Message: "${query}"`;
-
-  const intent = await model.call(intentPrompt);
-  return intent.trim().toLowerCase();
-}
-
-// --- Load JSON Data ---
-async function loadJSON(filePath) {
-  const raw = fs.readFileSync(filePath);
-  const jsonData = JSON.parse(raw);
-
-  return jsonData.map((item) => ({
-    pageContent: `Problem: ${item.problem}
-Steps: ${item.what_to_try_first.join("\n")}
-When to call support: ${item.when_to_call_support}`,
-    metadata: {
-      system: item.system?.toLowerCase(),
-      vendor: item.vendor?.toLowerCase(),
-      problem: item.problem?.toLowerCase(),
-    },
-  }));
-}
-
-// --- Search Function ---
-async function searchDocs(query) {
-  let allDocs = [];
-
-  for (let doc of catalog) {
-    if (doc.type === "json") {
-      const entries = await loadJSON(doc.path);
-
-      const filtered = entries.filter((entry) => {
-        const q = query.toLowerCase();
-        return (
-          q.includes(entry.metadata.system) ||
-          q.includes(entry.metadata.vendor) ||
-          q.includes(entry.metadata.problem.split(" ")[0])
-        );
+    try {
+      const res = await fetch("http://35.179.32.94:3000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
       });
 
-      allDocs = allDocs.concat(filtered.length > 0 ? filtered : entries);
-    }
-  }
+      const data = await res.json();
 
-  const vectorStore = await MemoryVectorStore.fromDocuments(
-    allDocs,
-    new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
+      if (data.results && Array.isArray(data.results)) {
+        setMessages((prev) => [
+          ...prev,
+          { sender: "assistant", results: data.results },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "assistant",
+            text: "No relevant troubleshooting steps found.",
+          },
+        ]);
+      }
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "assistant", text: "Error: " + error.message },
+      ]);
+    }
+
+    setInput("");
+  };
+
+  const renderOptionSelection = (results) => (
+    <div className="assistant-options">
+      {results.map((item, idx) => (
+        <div
+          key={idx}
+          className="option-card"
+          onClick={() => setSelectedResult(item)}
+        >
+          <strong>Problem:</strong> {item.problem} <br />
+          <strong>System:</strong> {item.system}
+        </div>
+      ))}
+    </div>
   );
 
-  return await vectorStore.similaritySearch(query, 3);
+  const renderSelectedResult = (item) => (
+    <div className="bubble">
+      <div className="assistant-section">
+        <p><strong>Problem:</strong> {item.problem}</p>
+        <p><strong>System:</strong> {item.system}</p>
+        {item.steps && item.steps.length > 0 && (
+          <div>
+            <strong>Steps:</strong>
+            <ul>
+              {item.steps.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {item.support && (
+          <p><strong>When to call support:</strong> {item.support}</p>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="chat-container">
+      <img
+        src="/wingsgtop_logo.png"
+        alt="Wingstop Logo"
+        className="app-logo"
+      />
+      <div className="chat-box">
+        {messages.map((msg, index) => (
+          <div key={index} className={`message ${msg.sender}`}>
+            <strong className="sender-label">
+              {msg.sender === "you" ? "YOU" : "ASSISTANT"}:
+            </strong>
+            <div className="bubble">
+              {msg.sender === "assistant" && msg.results
+                ? renderOptionSelection(msg.results)
+                : <p>{msg.text || ""}</p>}
+            </div>
+          </div>
+        ))}
+
+        {selectedResult && (
+          <div className="message assistant">
+            <strong className="sender-label">ASSISTANT:</strong>
+            {renderSelectedResult(selectedResult)}
+          </div>
+        )}
+      </div>
+
+      <div className="input-container">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
+    </div>
+  );
 }
 
-// --- Public Entry Point ---
-export async function getTroubleshootingMatches(query) {
-  const intent = await detectIntent(query);
-
-  if (intent !== "troubleshooting") {
-    return [{
-      problem: "👋 Hello!",
-      system: "",
-      steps: ["I'm here to help troubleshoot issues. Just describe the problem you're facing."],
-      support: ""
-    }];
-  }
-
-  const results = await searchDocs(query);
-
-  return results.map((entry) => {
-    const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
-    const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
-    const steps = lines.filter((l) =>
-      l.startsWith("•") || l.toLowerCase().startsWith("step")
-    );
-    const support = lines.find((l) =>
-      l.toLowerCase().startsWith("when to call support")
-    ) || "";
-
-    return {
-      problem: problem.replace(/Problem:/i, "").trim(),
-      steps: steps.map((s) => s.replace("•", "").trim()),
-      support: support.replace(/When to call support:/i, "").trim(),
-      system: entry.metadata?.system || ""
-    };
-  });
-}
-
-export async function initStore() {
-  // Optional future init
-}
+export default App;
