@@ -1,102 +1,69 @@
 import catalog from "./data/catalog.json" with { type: "json" };
-import fs from "fs";
+import fs from "fs/promises";
 import dotenv from "dotenv";
-import { OpenAI } from "@langchain/openai";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { Document } from "langchain/document";
 
 dotenv.config();
 
-// --- Document Loaders ---
+let vectorStore;
 
-async function loadPDF(filePath) {
-  const buffer = fs.readFileSync(filePath);
-  const data = await pdfParse(buffer);
-  return data.text;
+async function loadJSON(path) {
+  const raw = await fs.readFile(path, "utf-8");
+  const items = JSON.parse(raw);
+
+  return items.map((item) => {
+    const content = [
+      `System: ${item.System}`,
+      `Vendor: ${item.Vendor}`,
+      `Problem: ${item.Problem}`,
+      `Steps: ${item["What to Try First"]}`,
+      `When to call support: ${item["When to Call Support"]}`,
+    ].join("\n");
+
+    return new Document({
+      pageContent: content,
+      metadata: {
+        problem: item.Problem,
+        steps: item["What to Try First"],
+        support: item["When to Call Support"],
+      },
+    });
+  });
 }
 
-async function loadWord(filePath) {
-  const buffer = fs.readFileSync(filePath);
-  const result = await mammoth.extractRawText({ buffer });
-  return result.value;
-}
+export async function initStore() {
+  const docs = [];
 
-async function loadJSON(filePath) {
-  const rawData = fs.readFileSync(filePath);
-  const jsonData = JSON.parse(rawData);
-
-  return jsonData.map(item => ({
-    pageContent: `Problem: ${item.problem}
-Steps: ${item.what_to_try_first.join(" ")}
-When to call support: ${item.when_to_call_support}`,
-    metadata: { 
-      system: item.system.toLowerCase(), 
-      vendor: item.vendor.toLowerCase(), 
-      problem: item.problem.toLowerCase() 
-    }
-  }));
-}
-
-// --- Search Function ---
-
-async function searchDocs(query) {
-  let docs = [];
-
-  for (let doc of catalog) {
-    if (doc.type === "json") {
-      const entries = await loadJSON(doc.path);
-
-      // Filter by metadata if system/vendor words appear in query
-      const filtered = entries.filter(entry => {
-        const q = query.toLowerCase();
-        return (
-          q.includes(entry.metadata.system) ||
-          q.includes(entry.metadata.vendor) ||
-          q.includes(entry.metadata.problem.split(" ")[0]) // quick problem keyword
-        );
-      });
-
-      docs = docs.concat(filtered.length > 0 ? filtered : entries);
+  for (const source of catalog) {
+    if (source.type === "json") {
+      const entries = await loadJSON(source.path);
+      docs.push(...entries);
     }
   }
 
-  const vectorStore = await MemoryVectorStore.fromDocuments(
+  vectorStore = await MemoryVectorStore.fromDocuments(
     docs,
     new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
   );
-
-  const results = await vectorStore.similaritySearch(query, 1);
-  return results.map(r => r.pageContent);
 }
 
+export async function getTroubleshootingMatches(query, maxResults = 3) {
+  if (!vectorStore) {
+    await initStore();
+  }
 
+  const results = await vectorStore.similaritySearch(query, maxResults);
 
-// --- Main Answer Function ---
-
-const model = new OpenAI({
-  temperature: 0.2,
-  openAIApiKey: process.env.OPENAI_API_KEY,
-  maxTokens: 500
-});
-
-export async function getTroubleshootingAnswer(query) {
-  const results = await searchDocs(query);
-  const context = results.join("\n\n");
-
-const prompt = `You are a troubleshooting assistant. 
-Answer the question ONLY using the context below.
-Return your answer in this format:
-- Problem: <problem>
-- Steps:
-  • Step 1
-  • Step 2
-  • Step 3
-- When to call support: <support condition>
-
-Context:
-${context}
-
-Question: ${query}`;
-
-  return await model.call(prompt);
+  return results.map((r) => {
+    return {
+      problem: r.metadata.problem,
+      steps: r.metadata.steps
+        ?.split("•")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      support: r.metadata.support,
+    };
+  });
 }
