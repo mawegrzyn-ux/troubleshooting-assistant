@@ -74,6 +74,7 @@ export async function getTroubleshootingMatches(query) {
       problem: problem.replace(/Problem:/i, "").trim(),
       steps: steps.map((s) => s.replace("•", "").trim()),
       support: support.replace(/When to call support:/i, "").trim(),
+      system: entry.metadata.system || ""
     };
   });
 }
