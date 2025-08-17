@@ -1,4 +1,3 @@
-// ---------- troubleshooter.js ----------
 import catalog from "./data/catalog.json" with { type: "json" };
 import fs from "fs";
 import dotenv from "dotenv";
@@ -15,7 +14,7 @@ const model = new OpenAI({
 
 // --- Intent Detection ---
 async function detectIntent(query) {
-  const intentPrompt = `Classify the user's message into one of the following intents:
+  const prompt = `Classify the user's message into one of the following intents:
 - "troubleshooting" (if they describe a problem or issue with a system)
 - "casual" (if it's a greeting, thanks, or general talk)
 
@@ -23,12 +22,13 @@ Respond with only one word: "troubleshooting" or "casual"
 
 Message: "${query}"`;
 
-  const intent = await model.call(intentPrompt);
-  console.log("Intent:", intent); // ✅ Log output
-  return intent.trim().toLowerCase();
+  const intent = await model.call(prompt);
+  const trimmed = intent.trim().toLowerCase();
+  console.log("Intent:", trimmed);
+  return trimmed;
 }
 
-// --- Load JSON Catalog ---
+// --- Load JSON Data ---
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -45,7 +45,7 @@ When to call support: ${item.when_to_call_support}`,
   }));
 }
 
-// --- Search ---
+// --- Search Function ---
 async function searchDocs(query) {
   let allDocs = [];
 
@@ -79,10 +79,10 @@ export async function getTroubleshootingResponse(query) {
   const intent = await detectIntent(query);
 
   if (intent === "casual") {
-    const response = await model.call(
+    const casualReply = await model.call(
       `Respond casually to this message as a helpful assistant: "${query}"`
     );
-    return { text: response };
+    return { text: casualReply };
   }
 
   const results = await searchDocs(query);
@@ -110,5 +110,5 @@ export async function getTroubleshootingResponse(query) {
 }
 
 export async function initStore() {
-  // Optional init
+  // Optional startup init
 }
