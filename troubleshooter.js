@@ -24,7 +24,7 @@ Respond with only one word: "troubleshooting" or "casual"
 Message: "${query}"`;
 
   const intent = await model.call(intentPrompt);
-  console.log("Intent:", intent); // ✅ now actually logs
+  console.log("Intent:", intent); // ✅ Log output
   return intent.trim().toLowerCase();
 }
 
@@ -110,5 +110,5 @@ export async function getTroubleshootingResponse(query) {
 }
 
 export async function initStore() {
-  // Optional initialization logic
+  // Optional init
 }
