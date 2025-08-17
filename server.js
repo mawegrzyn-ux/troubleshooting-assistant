@@ -5,6 +5,8 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { getTroubleshootingResponse, initStore } from "./troubleshooter.js";
+import adminRoutes from "./adminRoutes.js";
+
 
 dotenv.config();
 
@@ -29,6 +31,9 @@ app.post("/chat", async (req, res) => {
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, "frontend/dist")));
+
+// ✅ Mount API routes BEFORE catch-all
+app.use("/api", adminRoutes);
 
 // Fallback for React Router SPA
 app.get("*", (req, res) => {
