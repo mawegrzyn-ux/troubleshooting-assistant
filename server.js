@@ -19,8 +19,8 @@ app.use(cors());
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
-    const reply = await getTroubleshootingResponse(message);
-    res.json(reply); // reply = either { results: [...] } or { text: "..." }
+    const response = await getTroubleshootingResponse(message);
+    res.json(response); // { text: "..." }
   } catch (err) {
     console.error("Error in /chat:", err);
     res.status(500).json({ error: "Something went wrong" });
@@ -30,7 +30,7 @@ app.post("/chat", async (req, res) => {
 // Serve frontend
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
-// React Router fallback
+// Fallback for React Router SPA
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
 });
