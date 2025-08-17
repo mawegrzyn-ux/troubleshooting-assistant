@@ -1,3 +1,4 @@
+// ---------- troubleshooter.js ----------
 import catalog from "./data/catalog.json" with { type: "json" };
 import fs from "fs";
 import dotenv from "dotenv";
@@ -12,9 +13,9 @@ const model = new OpenAI({
   maxTokens: 500,
 });
 
-// Intent detection
+// --- Intent Detection ---
 async function detectIntent(query) {
-  const prompt = `Classify the user's message into one of the following intents:
+  const intentPrompt = `Classify the user's message into one of the following intents:
 - "troubleshooting" (if they describe a problem or issue with a system)
 - "casual" (if it's a greeting, thanks, or general talk)
 
@@ -22,11 +23,12 @@ Respond with only one word: "troubleshooting" or "casual"
 
 Message: "${query}"`;
 
-  const response = await model.call(prompt);
-  return response.trim().toLowerCase();
+  const intent = await model.call(intentPrompt);
+  console.log("Intent:", intent); // ✅ now actually logs
+  return intent.trim().toLowerCase();
 }
 
-// Load JSON documents
+// --- Load JSON Catalog ---
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -43,7 +45,7 @@ When to call support: ${item.when_to_call_support}`,
   }));
 }
 
-// Search vector store
+// --- Search ---
 async function searchDocs(query) {
   let allDocs = [];
 
@@ -72,26 +74,22 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-// Entry point
+// --- Main Handler ---
 export async function getTroubleshootingResponse(query) {
   const intent = await detectIntent(query);
-  console.log("Intent detected:", intent);
 
-  if (intent !== "troubleshooting") {
-    const reply = await model.call(
-      `You are a friendly assistant. Respond conversationally to this message: "${query}"`
+  if (intent === "casual") {
+    const response = await model.call(
+      `Respond casually to this message as a helpful assistant: "${query}"`
     );
-    return { text: reply };
+    return { text: response };
   }
 
   const results = await searchDocs(query);
 
   return {
     results: results.map((entry) => {
-      const lines = entry.pageContent
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
+      const lines = entry.pageContent.split("\n").map((l) => l.trim()).filter(Boolean);
 
       const problem = lines.find((l) => l.toLowerCase().startsWith("problem")) || "";
       const steps = lines.filter((l) =>
@@ -105,12 +103,12 @@ export async function getTroubleshootingResponse(query) {
         problem: problem.replace(/Problem:/i, "").trim(),
         steps: steps.map((s) => s.replace("•", "").trim()),
         support: support.replace(/When to call support:/i, "").trim(),
-        system: entry.metadata?.system || "",
+        system: entry.metadata?.system || ""
       };
     }),
   };
 }
 
 export async function initStore() {
-  // Optional startup logic
+  // Optional initialization logic
 }
