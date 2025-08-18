@@ -20,11 +20,12 @@ app.use(cors());
 // Chat endpoint
 app.post("/chat", async (req, res) => {
   try {
-    const { message } = req.body;
-    const reset = await detectResolutionIntent(message);
+    const { message, clarifiedSystem } = req.body;
+    const combined = clarifiedSystem ? `${message} on ${clarifiedSystem}` : message;
+    const reset = await detectResolutionIntent(combined);
     let response = { text: "" };
     if (!reset) {
-      response = await getTroubleshootingResponse(message);
+      response = await getTroubleshootingResponse(combined);
     }
     res.json({ ...response, reset });
   } catch (err) {
