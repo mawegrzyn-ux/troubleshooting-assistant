@@ -12,7 +12,6 @@ const model = new OpenAI({
   maxTokens: 500,
 });
 
-// Load and vectorize documents
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -35,7 +34,6 @@ async function searchDocs(query) {
   for (let doc of catalog) {
     if (doc.type === "json") {
       const entries = await loadJSON(doc.path);
-
       const filtered = entries.filter((entry) => {
         const q = query.toLowerCase();
         return (
@@ -44,7 +42,6 @@ async function searchDocs(query) {
           q.includes(entry.metadata.problem.split(" ")[0])
         );
       });
-
       allDocs = allDocs.concat(filtered.length > 0 ? filtered : entries);
     }
   }
@@ -57,7 +54,12 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 3);
 }
 
-// Respond naturally using the context
+export async function detectResolutionIntent(message) {
+  const prompt = `Does the following message indicate the user's problem is resolved?\n\n"${message}"\n\nAnswer yes or no.`;
+  const reply = await model.call(prompt);
+  return reply.toLowerCase().includes("yes");
+}
+
 export async function getTroubleshootingResponse(query) {
   const results = await searchDocs(query);
 
@@ -82,7 +84,7 @@ export async function getTroubleshootingResponse(query) {
 
   const context = results.map((doc) => doc.pageContent).join("\n\n");
 
-  const prompt = `You are a helpful assistant. Use the following troubleshooting knowledge to answer the user's message naturally and informatively.
+  const prompt = `You are a helpful assistant. Use the following troubleshooting info to naturally answer the user's question.
 
 Context:
 ${context}
@@ -93,12 +95,4 @@ User: ${query}`;
   return { text: reply };
 }
 
-export async function detectResolutionIntent(message) {
-  const prompt = `Does the following message indicate the user's problem is resolved?\n\n"${message}"\n\nAnswer yes or no.`;
-  const reply = await model.call(prompt);
-  return reply.toLowerCase().includes("yes");
-}
-
-export async function initStore() {
-  // Optional init
-}
+export async function initStore() {}
