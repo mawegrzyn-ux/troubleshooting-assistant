@@ -1,15 +1,12 @@
+
 import express from "express";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import {
-  getTroubleshootingResponse,
-  initStore,
-  detectResolutionIntent,
-} from "./troubleshooter.js";
-import adminRoutes from "./adminRoutes.js";
+import session from "express-session";
+import { getChatResponse, initStore } from "./troubleshooter.js";
 
 dotenv.config();
 
@@ -20,33 +17,29 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+// Persistent sessions
+app.use(session({
+  secret: "wingstop-secret-key",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 30 * 60 * 1000 } // 30 min session timeout
+}));
+
 app.post("/chat", async (req, res) => {
   try {
-    const { message, clarifiedSystem } = req.body;
-    const finalMessage = clarifiedSystem
-      ? `${message} on ${clarifiedSystem}`
-      : message;
-
-    const shouldReset = await detectResolutionIntent(finalMessage);
-
-    if (shouldReset) {
-      return res.json({
-        text: "✅ Thanks for confirming. I'm resetting the chat.",
-        reset: true,
-      });
-    }
-
-    const response = await getTroubleshootingResponse(finalMessage);
-    res.json(response);
+    const userSession = req.session;
+    const { message } = req.body;
+    const response = await getChatResponse(message, userSession);
+    req.session.state = response.state;
+    res.json({ text: response.text });
   } catch (err) {
     console.error("Error in /chat:", err);
-    res.status(500).json({ error: "Something went wrong" });
+    res.status(500).json({ error: "Something went wrong." });
   }
 });
 
-app.use("/api", adminRoutes);
+// Serve frontend build
 app.use(express.static(path.join(__dirname, "frontend/dist")));
-
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
 });
