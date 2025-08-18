@@ -60,7 +60,27 @@ async function searchDocs(query) {
 // Respond naturally using the context
 export async function getTroubleshootingResponse(query) {
   const results = await searchDocs(query);
-  const context = results.map(doc => doc.pageContent).join("\n\n");
+
+  const systems = [
+    ...new Set(
+      results
+        .map((doc) => doc.metadata?.system)
+        .filter((system) => Boolean(system))
+    ),
+  ];
+
+  const queryLower = query.toLowerCase();
+  const detected = systems.filter((sys) => queryLower.includes(sys));
+
+  if (detected.length !== 1) {
+    return {
+      needsClarification: true,
+      systems,
+      message: "Can you confirm which system this relates to?",
+    };
+  }
+
+  const context = results.map((doc) => doc.pageContent).join("\n\n");
 
   const prompt = `You are a helpful assistant. Use the following troubleshooting knowledge to answer the user's message naturally and informatively.
 
