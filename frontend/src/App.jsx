@@ -19,10 +19,16 @@ function App() {
 
       const data = await res.json();
 
-      setMessages((prev) => [
-        ...prev,
-        { sender: "assistant", text: data.text || "No response." },
-      ]);
+      if (data.reset) {
+        setMessages([
+          { sender: "assistant", text: "✅ Problem resolved. Starting a new session." },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          { sender: "assistant", text: data.text || "No response." },
+        ]);
+      }
     } catch (error) {
       setMessages((prev) => [
         ...prev,

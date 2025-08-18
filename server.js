@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getTroubleshootingResponse, initStore } from "./troubleshooter.js";
+import { getTroubleshootingResponse, initStore, detectResolutionIntent } from "./troubleshooter.js";
 import adminRoutes from "./adminRoutes.js";
 
 
@@ -21,8 +21,12 @@ app.use(cors());
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
-    const response = await getTroubleshootingResponse(message);
-    res.json(response); // { text: "..." }
+    const reset = await detectResolutionIntent(message);
+    let response = { text: "" };
+    if (!reset) {
+      response = await getTroubleshootingResponse(message);
+    }
+    res.json({ ...response, reset });
   } catch (err) {
     console.error("Error in /chat:", err);
     res.status(500).json({ error: "Something went wrong" });
