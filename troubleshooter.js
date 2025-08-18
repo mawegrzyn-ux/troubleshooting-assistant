@@ -73,6 +73,12 @@ User: ${query}`;
   return { text: reply };
 }
 
+export async function detectResolutionIntent(message) {
+  const prompt = `Does the following message indicate the user's problem is resolved?\n\n"${message}"\n\nAnswer yes or no.`;
+  const reply = await model.call(prompt);
+  return reply.toLowerCase().includes("yes");
+}
+
 export async function initStore() {
   // Optional init
 }
