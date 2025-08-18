@@ -17,8 +17,10 @@ function App() {
       setPendingMessage(original);
     } else if (data.reset) {
       setMessages([
-        { sender: "assistant", text: "✅ Problem resolved. Starting a new session." },
+        { sender: "assistant", text: data.text },
       ]);
+      setClarifyOptions([]);
+      setPendingMessage("");
     } else {
       setMessages((prev) => [
         ...prev,
@@ -51,23 +53,21 @@ function App() {
     setInput("");
   };
 
-  const handleClarify = async (selected) => {
+  const handleClarify = async (system) => {
     if (!pendingMessage) return;
-    const original = pendingMessage;
+
     setClarifyOptions([]);
     setPendingMessage("");
+
     try {
       const res = await fetch("http://35.179.32.94:3000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: original,
-          clarifiedSystem: selected,
-        }),
+        body: JSON.stringify({ message: pendingMessage, clarifiedSystem: system }),
       });
 
       const data = await res.json();
-      processResponse(data, original);
+      processResponse(data, pendingMessage);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -95,9 +95,10 @@ function App() {
 
       {clarifyOptions.length > 0 && (
         <div className="clarify-options">
-          {clarifyOptions.map((opt) => (
-            <button key={opt} onClick={() => handleClarify(opt)}>
-              {opt}
+          <p>Which system is this related to?</p>
+          {clarifyOptions.map((option) => (
+            <button key={option} onClick={() => handleClarify(option)}>
+              {option}
             </button>
           ))}
         </div>
