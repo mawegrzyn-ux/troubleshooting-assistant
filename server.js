@@ -4,9 +4,12 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getTroubleshootingResponse, initStore, detectResolutionIntent } from "./troubleshooter.js";
+import {
+  getTroubleshootingResponse,
+  initStore,
+  detectResolutionIntent,
+} from "./troubleshooter.js";
 import adminRoutes from "./adminRoutes.js";
-
 
 dotenv.config();
 
@@ -17,35 +20,37 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// Chat endpoint
 app.post("/chat", async (req, res) => {
   try {
     const { message, clarifiedSystem } = req.body;
-    const combined = clarifiedSystem ? `${message} on ${clarifiedSystem}` : message;
-    const reset = await detectResolutionIntent(combined);
-    let response = { text: "" };
-    if (!reset) {
-      response = await getTroubleshootingResponse(combined);
+    const finalMessage = clarifiedSystem
+      ? `${message} on ${clarifiedSystem}`
+      : message;
+
+    const shouldReset = await detectResolutionIntent(finalMessage);
+
+    if (shouldReset) {
+      return res.json({
+        text: "✅ Thanks for confirming. I'm resetting the chat.",
+        reset: true,
+      });
     }
-    res.json({ ...response, reset });
+
+    const response = await getTroubleshootingResponse(finalMessage);
+    res.json(response);
   } catch (err) {
     console.error("Error in /chat:", err);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
-// Serve frontend
+app.use("/api", adminRoutes);
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
-// ✅ Mount API routes BEFORE catch-all
-app.use("/api", adminRoutes);
-
-// Fallback for React Router SPA
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
 });
 
-// Start server
 initStore().then(() => {
   app.listen(3000, () => {
     console.log("Assistant backend + frontend running on port 3000");
