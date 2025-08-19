@@ -53,21 +53,25 @@ function App() {
 
   const handleClarify = async (selected) => {
     if (!pendingMessage) return;
-    const original = pendingMessage;
+
+    // Show user selection in message history
+    setMessages((prev) => [...prev, { sender: "you", text: selected }]);
+
     setClarifyOptions([]);
     setPendingMessage("");
+
     try {
       const res = await fetch("http://35.179.32.94:3000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: original,
+          message: pendingMessage,
           clarifiedSystem: selected,
         }),
       });
 
       const data = await res.json();
-      processResponse(data, original);
+      processResponse(data, pendingMessage);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -91,17 +95,18 @@ function App() {
             </div>
           </div>
         ))}
-      </div>
 
-      {clarifyOptions.length > 0 && (
-        <div className="clarify-options">
-          {clarifyOptions.map((opt) => (
-            <button key={opt} onClick={() => handleClarify(opt)}>
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
+        {clarifyOptions.length > 0 && (
+          <div className="clarify-options">
+            <p>Please select a system:</p>
+            {clarifyOptions.map((opt) => (
+              <button key={opt} onClick={() => handleClarify(opt)}>
+                {opt}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="input-container">
         <input
