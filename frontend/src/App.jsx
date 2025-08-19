@@ -1,16 +1,36 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./App.css";
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [pendingSystems, setPendingSystems] = useState([]);
+  const [pendingMessage, setPendingMessage] = useState("");
+  const [clarifyOptions, setClarifyOptions] = useState([]);
+
+  const processResponse = (data, original = "") => {
+    if (data.needsClarification) {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "assistant", text: data.message },
+      ]);
+      setClarifyOptions(data.systems || []);
+      setPendingMessage(original);
+    } else if (data.reset) {
+      setMessages([
+        { sender: "assistant", text: "✅ Problem resolved. Starting a new session." },
+      ]);
+    } else {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "assistant", text: data.text || "No response." },
+      ]);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const newMessage = { sender: "you", text: input };
-    setMessages((prev) => [...prev, newMessage]);
+
+    setMessages((prev) => [...prev, { sender: "you", text: input }]);
 
     try {
       const res = await fetch("http://35.179.32.94:3000/chat", {
@@ -20,17 +40,7 @@ function App() {
       });
 
       const data = await res.json();
-
-      if (data.needsClarification && data.systems?.length) {
-        setPendingSystems(data.systems);
-        setMessages((prev) => [
-          ...prev,
-          { sender: "assistant", text: data.message },
-        ]);
-      } else {
-        const responseText = data.text || data.message || "No response.";
-        setMessages((prev) => [...prev, { sender: "assistant", text: responseText }]);
-      }
+      processResponse(data, input);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -41,20 +51,29 @@ function App() {
     setInput("");
   };
 
-  const handleSystemSelection = async (system) => {
-    setMessages((prev) => [
-      ...prev,
-      { sender: "you", text: system },
-    ]);
-    setPendingSystems([]);
-    const res = await fetch("http://localhost:3000/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: system }),
-    });
-    const data = await res.json();
-    const responseText = data.text || data.message || "No response.";
-    setMessages((prev) => [...prev, { sender: "assistant", text: responseText }]);
+  const handleClarify = async (selected) => {
+    if (!pendingMessage) return;
+    const original = pendingMessage;
+    setClarifyOptions([]);
+    setPendingMessage("");
+    try {
+      const res = await fetch("http://35.179.32.94:3000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: original,
+          clarifiedSystem: selected,
+        }),
+      });
+
+      const data = await res.json();
+      processResponse(data, original);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { sender: "assistant", text: "Error: " + error.message },
+      ]);
+    }
   };
 
   return (
@@ -72,21 +91,17 @@ function App() {
             </div>
           </div>
         ))}
-
-        {pendingSystems.length > 0 && (
-          <div className="message assistant">
-            <strong className="sender-label">ASSISTANT:</strong>
-            <div className="bubble">
-              <p>Please select the system:</p>
-              {pendingSystems.map((sys, i) => (
-                <button key={i} onClick={() => handleSystemSelection(sys)} style={{ margin: "5px" }}>
-                  {sys}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
+
+      {clarifyOptions.length > 0 && (
+        <div className="clarify-options">
+          {clarifyOptions.map((opt) => (
+            <button key={opt} onClick={() => handleClarify(opt)}>
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="input-container">
         <input
