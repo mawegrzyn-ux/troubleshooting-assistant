@@ -19,7 +19,7 @@ function App() {
     setMessages((prev) => [...prev, newUserMessage]);
 
     try {
-      const response = await fetch("http://stiab.online/:3000/chat", {
+      const response = await fetch("http://stiab.online:3000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input, clarifiedSystem }),
