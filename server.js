@@ -4,9 +4,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { getTroubleshootingResponse, initStore, detectResolutionIntent } from "./troubleshooter.js";
+import { getResponse, initStore } from "./troubleshooter.js";
 import adminRoutes from "./adminRoutes.js";
-
 
 dotenv.config();
 
@@ -21,24 +20,19 @@ app.use(cors());
 app.post("/chat", async (req, res) => {
   try {
     const { message, clarifiedSystem } = req.body;
-    const combined = clarifiedSystem ? `${message} on ${clarifiedSystem}` : message;
-    const reset = await detectResolutionIntent(combined);
-    let response = { text: "" };
-    if (!reset) {
-      response = await getTroubleshootingResponse(combined);
-    }
-    res.json({ ...response, reset });
+    const response = await getResponse({ message, clarifiedSystem });
+    res.json(response);
   } catch (err) {
     console.error("Error in /chat:", err);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
 
+// Admin API
+app.use("/api", adminRoutes);
+
 // Serve frontend
 app.use(express.static(path.join(__dirname, "frontend/dist")));
-
-// ✅ Mount API routes BEFORE catch-all
-app.use("/api", adminRoutes);
 
 // Fallback for React Router SPA
 app.get("*", (req, res) => {
