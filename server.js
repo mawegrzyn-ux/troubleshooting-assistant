@@ -1,12 +1,12 @@
-
 import express from "express";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import session from "express-session";
-import { getChatResponse, initStore } from "./troubleshooter.js";
+import { getTroubleshootingResponse, initStore, detectResolutionIntent } from "./troubleshooter.js";
+import adminRoutes from "./adminRoutes.js";
+
 
 dotenv.config();
 
@@ -17,33 +17,35 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// Persistent sessions
-app.use(session({
-  secret: "wingstop-secret-key",
-  resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 30 * 60 * 1000 } // 30 min session timeout
-}));
-
+// Chat endpoint
 app.post("/chat", async (req, res) => {
   try {
-    const userSession = req.session;
-    const { message } = req.body;
-    const response = await getChatResponse(message, userSession);
-    req.session.state = response.state;
-    res.json({ text: response.text });
+    const { message, clarifiedSystem } = req.body;
+    const combined = clarifiedSystem ? `${message} on ${clarifiedSystem}` : message;
+    const reset = await detectResolutionIntent(combined);
+    let response = { text: "" };
+    if (!reset) {
+      response = await getTroubleshootingResponse(combined);
+    }
+    res.json({ ...response, reset });
   } catch (err) {
     console.error("Error in /chat:", err);
-    res.status(500).json({ error: "Something went wrong." });
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
-// Serve frontend build
+// Serve frontend
 app.use(express.static(path.join(__dirname, "frontend/dist")));
+
+// ✅ Mount API routes BEFORE catch-all
+app.use("/api", adminRoutes);
+
+// Fallback for React Router SPA
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist", "index.html"));
 });
 
+// Start server
 initStore().then(() => {
   app.listen(3000, () => {
     console.log("Assistant backend + frontend running on port 3000");
