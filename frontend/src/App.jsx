@@ -1,83 +1,65 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [pendingMessage, setPendingMessage] = useState("");
-  const [clarifyOptions, setClarifyOptions] = useState([]);
+  const [clarifiedSystem, setClarifiedSystem] = useState(null);
+  const [systemOptions, setSystemOptions] = useState([]);
+  const messagesEndRef = useRef(null);
 
-  const processResponse = (data, original = "") => {
-    if (data.needsClarification) {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "assistant", text: data.message },
-      ]);
-      setClarifyOptions(data.systems || []);
-      setPendingMessage(original);
-    } else if (data.reset) {
-      setMessages([
-        { sender: "assistant", text: "✅ Problem resolved. Starting a new session." },
-      ]);
-    } else {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "assistant", text: data.text || "No response." },
-      ]);
-    }
-  };
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    setMessages((prev) => [...prev, { sender: "you", text: input }]);
+    const newUserMessage = { sender: "you", text: input };
+    setMessages((prev) => [...prev, newUserMessage]);
 
     try {
-      const res = await fetch("http://35.179.32.94:3000/chat", {
+      const response = await fetch("http://localhost:3000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: input, clarifiedSystem }),
       });
 
-      const data = await res.json();
-      processResponse(data, input);
-    } catch (error) {
+      const data = await response.json();
+
+      if (data.reset) {
+        setMessages([{ sender: "assistant", text: "Great! I'm glad it's resolved. Let me know if anything else comes up." }]);
+        setClarifiedSystem(null);
+        setSystemOptions([]);
+        setInput("");
+        return;
+      }
+
+      if (data.needsClarification) {
+        setSystemOptions(data.systems || []);
+      }
+
+      if (data.message || data.text) {
+        const assistantMessage = { sender: "assistant", text: data.message || data.text };
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+    } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { sender: "assistant", text: "Error: " + error.message },
+        { sender: "assistant", text: "Error: Failed to fetch" },
       ]);
     }
 
     setInput("");
   };
 
-  const handleClarify = async (selected) => {
-    if (!pendingMessage) return;
-
-    // Show user selection in message history
-    setMessages((prev) => [...prev, { sender: "you", text: selected }]);
-
-    setClarifyOptions([]);
-    setPendingMessage("");
-
-    try {
-      const res = await fetch("http://35.179.32.94:3000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: pendingMessage,
-          clarifiedSystem: selected,
-        }),
-      });
-
-      const data = await res.json();
-      processResponse(data, pendingMessage);
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "assistant", text: "Error: " + error.message },
-      ]);
-    }
+  const handleSystemSelection = (system) => {
+    setClarifiedSystem(system);
+    setMessages((prev) => [
+      ...prev,
+      { sender: "you", text: system },
+    ]);
+    setSystemOptions([]);
   };
 
   return (
@@ -85,8 +67,8 @@ function App() {
       <img src="/wingsgtop_logo.png" alt="Wingstop Logo" className="app-logo" />
 
       <div className="chat-box">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.sender}`}>
+        {messages.map((msg, i) => (
+          <div key={i} className={`message ${msg.sender}`}>
             <strong className="sender-label">
               {msg.sender === "you" ? "YOU" : "ASSISTANT"}:
             </strong>
@@ -96,16 +78,23 @@ function App() {
           </div>
         ))}
 
-        {clarifyOptions.length > 0 && (
-          <div className="clarify-options">
-            <p>Please select a system:</p>
-            {clarifyOptions.map((opt) => (
-              <button key={opt} onClick={() => handleClarify(opt)}>
-                {opt}
-              </button>
-            ))}
+        {systemOptions.length > 0 && (
+          <div className="message assistant">
+            <strong className="sender-label">ASSISTANT:</strong>
+            <div className="bubble">
+              <p>Can you confirm which system this relates to?</p>
+              <div className="system-options">
+                {systemOptions.map((system, index) => (
+                  <button key={index} onClick={() => handleSystemSelection(system)}>
+                    {system}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="input-container">
