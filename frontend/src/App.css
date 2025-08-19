@@ -1,203 +1,109 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #e6f4f0; /* light mint green */
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-.result-block {
-  background: #fdfdfb;
-  border: 1px solid #9fc5b6;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 15px;
-}
-.app-logo {
-  display: block;
-  margin: 0px auto 0px;
-  max-height: 128px;   /* ✅ limit height */
-  width: auto;         /* keep aspect ratio */
-}
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100%;
+  background-color: #e6f2ef;
 }
 
-h2 {
-  text-align: center;
-  margin: 10px 0;
-  font-size: 1.5rem;
-  color: #004d33; /* dark green */
+.chat-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ffffff;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.app-logo {
+  display: block;
+  margin: 20px auto;
+  max-width: 150px;
 }
 
 .chat-box {
-  flex: 1;
-  padding: 15px;
+  margin: 20px 0;
+  max-height: 65vh;
   overflow-y: auto;
-  background: #fdfdfb; /* soft cream */
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  padding-right: 10px;
 }
 
-/* General message block */
 .message {
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  max-width: 80%;
-  position: relative;
+  margin-bottom: 15px;
 }
 
-/* Sender labels */
-.message strong {
-  font-size: 0.8rem;
-  color: #004d33; /* dark green */
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-bottom: 5px;
-}
-
-/* User bubble */
 .message.you {
-  align-self: flex-end;
   text-align: right;
 }
 
-.message.you .bubble {
-  background: #fdfdfb;
-  border: 1px solid #9fc5b6;
-  color: #004d33;
-  border-radius: 15px 15px 0 15px;
-  padding: 10px 15px;
-  display: inline-block;
-  position: relative;
-  margin-left: auto; /* ✅ pushes bubble to the right */
-}
-
-
-.message.you .bubble::after {
-  content: "";
-  position: absolute;
-  right: -10px;
-  top: 15px;
-  border-width: 10px 0 10px 10px;
-  border-style: solid;
-  border-color: transparent transparent transparent #fdfdfb;
-}
-
-/* Assistant bubble */
 .message.assistant {
-  align-self: flex-start;
   text-align: left;
 }
 
-.message.assistant .bubble {
-  background: #9fc5b6;
-  border: 1px solid #6fa58f;
-  color: #004d33;
-  border-radius: 15px 15px 15px 0;
-  padding: 10px 15px;
-  display: inline-block;
-  position: relative;
-}
-
-.message.assistant .bubble::after {
-  content: "";
-  position: absolute;
-  left: -10px;
-  top: 15px;
-  border-width: 10px 10px 10px 0;
-  border-style: solid;
-  border-color: transparent #9fc5b6 transparent transparent;
-}
-
-/* Assistant text formatting */
-.assistant-section strong {
+.sender-label {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #005b3c;
   display: block;
   margin-bottom: 5px;
-  color: #004d33;
 }
 
-.assistant-section ul {
-  margin: 5px 0 10px 20px;
-  list-style-type: disc;
+.bubble {
+  display: inline-block;
+  background-color: #a5cfc4;
+  padding: 10px 15px;
+  border-radius: 12px;
+  max-width: 80%;
+  color: #003322;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-/* Input area */
 .input-container {
   display: flex;
-  padding: 10px;
-  border-top: 1px solid #ccc;
-  background: #e6f4f0;
-  position: sticky;
-  bottom: 0;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .input-container input {
   flex: 1;
-  padding: 12px;
-  border: 1px solid #9fc5b6;
-  border-radius: 6px;
-  font-size: 1rem;
-  outline: none;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
 }
 
 .input-container button {
-  margin-left: 10px;
-  padding: 12px 20px;
-  background: #006241; /* Wingstop green */
+  padding: 10px 16px;
+  background-color: #005b3c;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease-in-out;
+  font-weight: bold;
 }
 
 .input-container button:hover {
-  background: #004d33; /* darker Wingstop green */
+  background-color: #007c50;
 }
-/* Assistant Option Cards */
-.assistant-options {
+
+/* Style for system clarification buttons */
+.system-options {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-top: 10px;
 }
 
-.option-card {
-  background: #e0f1ec;
-  border: 1px solid #9fc5b6;
-  padding: 12px 15px;
-  border-radius: 10px;
+.system-options button {
+  padding: 8px 14px;
+  background-color: #e0f4eb;
+  border: 1px solid #005b3c;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s ease-in-out, transform 0.1s ease-in-out;
+  color: #005b3c;
+  font-weight: 600;
 }
 
-.option-card:hover {
-  background: #cce7dc;
-  transform: scale(1.01);
-}
-
-.option-card.active {
-  background: #9fc5b6;
-  border-color: #6fa58f;
-}
-
-/* Selected Result Styling (within assistant bubble) */
-.assistant-section {
-  margin-top: 12px;
-}
-
-.assistant-section p,
-.assistant-section ul {
-  margin: 6px 0;
-}
-
-.assistant-section ul {
-  list-style: disc;
-  padding-left: 20px;
+.system-options button:hover {
+  background-color: #c6ecd8;
 }
