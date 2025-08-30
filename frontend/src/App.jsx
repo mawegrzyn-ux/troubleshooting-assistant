@@ -43,7 +43,8 @@ function App() {
         const assistantMessage = { sender: "assistant", text: data.message || data.text };
         setMessages((prev) => [...prev, assistantMessage]);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error("Failed to fetch", error);
       setMessages((prev) => [
         ...prev,
         { sender: "assistant", text: "Error: Failed to fetch" },

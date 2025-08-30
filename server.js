@@ -1,5 +1,4 @@
 import express from "express";
-import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
@@ -13,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
 
 // Chat endpoint

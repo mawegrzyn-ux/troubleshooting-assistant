@@ -63,3 +63,15 @@ POST /chat
 }
 ```
 
+## Development
+
+Run linting for the React frontend and start the Node backend during development:
+
+```bash
+cd frontend && npm run lint
+```
+
+```bash
+node server.js
+```
+
