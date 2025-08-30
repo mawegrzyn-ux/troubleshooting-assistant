@@ -5,11 +5,11 @@ import "./AdminPanel.css"; // optional styling
 function AdminPanel() {
   const [entries, setEntries] = useState([]);
   const [form, setForm] = useState({ system: "", vendor: "", problem: "", what_to_try_first: "", when_to_call_support: "" });
-  const [editingId, setEditingId] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(null);
 
   // Fetch all entries
   useEffect(() => {
-    fetch("/api/troubleshooting")
+    fetch("/api/entries")
       .then(res => res.json())
       .then(data => setEntries(data))
       .catch(err => console.error("Fetch error:", err));
@@ -29,8 +29,8 @@ function AdminPanel() {
       when_to_call_support: form.when_to_call_support
     };
 
-    const url = editingId ? `/api/troubleshooting/${editingId}` : "/api/troubleshooting";
-    const method = editingId ? "PUT" : "POST";
+    const url = editingIndex !== null ? `/api/entries/${editingIndex}` : "/api/entries";
+    const method = editingIndex !== null ? "PUT" : "POST";
 
     const res = await fetch(url, {
       method,
@@ -39,12 +39,15 @@ function AdminPanel() {
     });
 
     if (res.ok) {
-      window.location.reload();
+      const updated = await res.json();
+      setEntries(updated);
+      setForm({ system: "", vendor: "", problem: "", what_to_try_first: "", when_to_call_support: "" });
+      setEditingIndex(null);
     }
   };
 
-  const handleEdit = (entry) => {
-    setEditingId(entry.id);
+  const handleEdit = (entry, index) => {
+    setEditingIndex(index);
     setForm({
       system: entry.system,
       vendor: entry.vendor,
@@ -54,12 +57,13 @@ function AdminPanel() {
     });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (index) => {
     if (!window.confirm("Delete this entry?")) return;
 
-    const res = await fetch(`/api/troubleshooting/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/entries/${index}`, { method: "DELETE" });
     if (res.ok) {
-      setEntries(entries.filter(e => e.id !== id));
+      const updated = await res.json();
+      setEntries(updated);
     }
   };
 
@@ -73,22 +77,22 @@ function AdminPanel() {
         <input name="problem" value={form.problem} onChange={handleChange} placeholder="Problem" required />
         <textarea name="what_to_try_first" value={form.what_to_try_first} onChange={handleChange} placeholder="Steps (one per line)" rows={5} required />
         <textarea name="when_to_call_support" value={form.when_to_call_support} onChange={handleChange} placeholder="When to call support" rows={2} required />
-        <button type="submit">{editingId ? "Update" : "Add"} Entry</button>
+        <button type="submit">{editingIndex !== null ? "Update" : "Add"} Entry</button>
       </form>
 
       <hr />
 
       <div className="entry-list">
-        {entries.map(entry => (
-          <div key={entry.id} className="entry-block">
+        {entries.map((entry, index) => (
+          <div key={index} className="entry-block">
             <strong>{entry.system} - {entry.problem}</strong>
             <p><em>{entry.vendor}</em></p>
             <ul>
               {entry.what_to_try_first.map((s, i) => <li key={i}>{s}</li>)}
             </ul>
             <p><strong>Support:</strong> {entry.when_to_call_support}</p>
-            <button onClick={() => handleEdit(entry)}>Edit</button>
-            <button onClick={() => handleDelete(entry.id)}>Delete</button>
+            <button onClick={() => handleEdit(entry, index)}>Edit</button>
+            <button onClick={() => handleDelete(index)}>Delete</button>
           </div>
         ))}
       </div>
