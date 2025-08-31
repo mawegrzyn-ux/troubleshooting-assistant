@@ -1,6 +1,9 @@
 // adminRoutes.js
 import express from "express";
-import { promises as fs } from "fs";
+
+import fs from "fs";
+import { randomUUID } from "crypto";
+
 const router = express.Router();
 
 const filePath = "./data/troubleshooting.json"; // Use your real path
@@ -27,39 +30,45 @@ router.get("/entries", async (req, res) => {
 // Add new entry
 router.post("/entries", async (req, res) => {
   try {
-    const data = await readData();
-    const newEntry = req.body;
+
+    const data = readData();
+    const newEntry = { id: randomUUID(), ...req.body };
     data.push(newEntry);
-    await writeData(data);
-    res.status(201).json({ message: "Entry added" });
+    writeData(data);
+    res.status(201).json(newEntry);
+
   } catch (e) {
     res.status(500).json({ error: "Failed to add entry" });
   }
 });
 
-// Edit entry by index
-router.put("/entries/:index", async (req, res) => {
+// Edit entry by id
+router.put("/entries/:id", (req, res) => {
   try {
-    const data = await readData();
-    const idx = parseInt(req.params.index);
-    if (idx < 0 || idx >= data.length) return res.status(404).json({ error: "Entry not found" });
-    data[idx] = req.body;
-    await writeData(data);
-    res.json({ message: "Entry updated" });
+    const data = readData();
+    const id = req.params.id;
+    const idx = data.findIndex(entry => entry.id === id);
+    if (idx === -1) return res.status(404).json({ error: "Entry not found" });
+    data[idx] = { ...req.body, id };
+    writeData(data);
+    res.json(data[idx]);
+
   } catch (e) {
     res.status(500).json({ error: "Failed to update entry" });
   }
 });
 
-// Delete entry by index
-router.delete("/entries/:index", async (req, res) => {
+// Delete entry by id
+router.delete("/entries/:id", (req, res) => {
   try {
-    const data = await readData();
-    const idx = parseInt(req.params.index);
-    if (idx < 0 || idx >= data.length) return res.status(404).json({ error: "Entry not found" });
+    const data = readData();
+    const id = req.params.id;
+    const idx = data.findIndex(entry => entry.id === id);
+    if (idx === -1) return res.status(404).json({ error: "Entry not found" });
     data.splice(idx, 1);
-    await writeData(data);
-    res.json({ message: "Entry deleted" });
+    writeData(data);
+    res.json({ id });
+
   } catch (e) {
     res.status(500).json({ error: "Failed to delete entry" });
   }
