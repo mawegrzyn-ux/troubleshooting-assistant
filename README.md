@@ -2,6 +2,14 @@
 
 This repository hosts a small demo service that accepts user troubleshooting questions through a POST `/chat` endpoint.
 
+## Environment variables
+
+The server expects an `OPENAI_API_KEY` in its environment. Copy `.env.example` to `.env` and fill in your key:
+
+```
+OPENAI_API_KEY=your-openai-api-key
+```
+
 ## Clarification protocol
 
 The assistant may respond with a `needsClarification` object when it lacks critical system context. The structure of this response is:
