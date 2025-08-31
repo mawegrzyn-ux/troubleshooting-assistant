@@ -20,8 +20,9 @@ const model = new OpenAI({
 let vectorStore;
 
 async function loadJSON(filePath) {
-  const raw = fs.readFileSync(filePath);
-  const jsonData = JSON.parse(raw);
+  const raw = fs.readFileSync(filePath, "utf-8");
+  const rawStr = typeof raw === "string" ? raw : raw.toString("utf-8");
+  const jsonData = JSON.parse(rawStr);
 
   return jsonData.map((item) => ({
     pageContent: `Problem: ${item.problem}
