@@ -1,0 +1,56 @@
+.language-selector .burger {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.language-selector .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.language-selector .overlay-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.language-selector .overlay-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.language-selector .overlay-content li {
+  margin: 8px 0;
+}
+
+.language-selector .overlay-content button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.language-selector .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
