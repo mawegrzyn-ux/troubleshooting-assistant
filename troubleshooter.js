@@ -6,6 +6,11 @@ import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 dotenv.config();
 
+if (!process.env.OPENAI_API_KEY) {
+  console.error("Missing OPENAI_API_KEY environment variable. Please set it in your .env file.");
+  throw new Error("OPENAI_API_KEY is not defined");
+}
+
 const model = new OpenAI({
   temperature: 0.5,
   openAIApiKey: process.env.OPENAI_API_KEY,
