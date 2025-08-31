@@ -10,5 +10,10 @@ const translator = new OpenAI({
 
 export async function translateText(text, targetLang) {
   const prompt = `Translate the following text to ${targetLang}:\n\n${text}`;
-  return await translator.call(prompt);
+  try {
+    return await translator.call(prompt);
+  } catch (error) {
+    console.error("Translation error:", error);
+    return text;
+  }
 }
