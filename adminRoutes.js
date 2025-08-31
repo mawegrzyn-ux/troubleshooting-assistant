@@ -1,7 +1,7 @@
 // adminRoutes.js
 import express from "express";
 
-import fs from "fs";
+import fs from "fs/promises";
 import { randomUUID } from "crypto";
 
 const router = express.Router();
@@ -30,45 +30,41 @@ router.get("/entries", async (req, res) => {
 // Add new entry
 router.post("/entries", async (req, res) => {
   try {
-
-    const data = readData();
+    const data = await readData();
     const newEntry = { id: randomUUID(), ...req.body };
     data.push(newEntry);
-    writeData(data);
+    await writeData(data);
     res.status(201).json(newEntry);
-
   } catch (e) {
     res.status(500).json({ error: "Failed to add entry" });
   }
 });
 
 // Edit entry by id
-router.put("/entries/:id", (req, res) => {
+router.put("/entries/:id", async (req, res) => {
   try {
-    const data = readData();
+    const data = await readData();
     const id = req.params.id;
     const idx = data.findIndex(entry => entry.id === id);
     if (idx === -1) return res.status(404).json({ error: "Entry not found" });
     data[idx] = { ...req.body, id };
-    writeData(data);
+    await writeData(data);
     res.json(data[idx]);
-
   } catch (e) {
     res.status(500).json({ error: "Failed to update entry" });
   }
 });
 
 // Delete entry by id
-router.delete("/entries/:id", (req, res) => {
+router.delete("/entries/:id", async (req, res) => {
   try {
-    const data = readData();
+    const data = await readData();
     const id = req.params.id;
     const idx = data.findIndex(entry => entry.id === id);
     if (idx === -1) return res.status(404).json({ error: "Entry not found" });
     data.splice(idx, 1);
-    writeData(data);
+    await writeData(data);
     res.json({ id });
-
   } catch (e) {
     res.status(500).json({ error: "Failed to delete entry" });
   }
