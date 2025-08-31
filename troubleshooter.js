@@ -65,9 +65,13 @@ export async function getTroubleshootingResponse(query, clarifiedSystem = "", se
     };
   }
 
-  const relevant = results.find(r =>
-    (r.metadata.problem === selectedProblem || query.toLowerCase().includes(r.metadata.problem))
-  ) || results[0];
+  const relevant =
+    results.find(
+      (r) =>
+        r.metadata.problem &&
+        (r.metadata.problem === selectedProblem ||
+          query.toLowerCase().includes(r.metadata.problem))
+    ) || (results[0]?.metadata.problem ? results[0] : undefined);
 
   const prompt = `You are a helpful assistant. Given the context below, provide natural, clear troubleshooting guidance to help the user.
 Context:
