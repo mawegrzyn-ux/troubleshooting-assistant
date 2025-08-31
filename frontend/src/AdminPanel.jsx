@@ -39,8 +39,12 @@ function AdminPanel() {
     });
 
     if (res.ok) {
-      const updated = await res.json();
-      setEntries(updated);
+      const entry = await res.json();
+      setEntries(prev => (
+        editingId
+          ? prev.map(e => (e.id === entry.id ? entry : e))
+          : [...prev, entry]
+      ));
       setForm({ system: "", vendor: "", problem: "", what_to_try_first: "", when_to_call_support: "" });
       setEditingId(null);
     }
@@ -62,8 +66,8 @@ function AdminPanel() {
 
     const res = await fetch(`/api/entries/${id}`, { method: "DELETE" });
     if (res.ok) {
-      const updated = await res.json();
-      setEntries(updated);
+      const { id: removedId } = await res.json();
+      setEntries(prev => prev.filter(e => e.id !== removedId));
     }
   };
 
