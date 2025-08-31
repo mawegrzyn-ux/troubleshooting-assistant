@@ -46,6 +46,10 @@ async function searchDocs(query) {
 export async function getTroubleshootingResponse(query, clarifiedSystem = "", selectedProblem = "") {
   const results = await searchDocs(query);
 
+  if (!results || results.length === 0) {
+    return { text: "I couldn't find relevant troubleshooting info." };
+  }
+
   const problems = results.map(r => r.metadata.problem);
   const uniqueProblems = [...new Set(problems)];
   const systems = [...new Set(results.map(r => r.metadata.system).filter(Boolean))];
