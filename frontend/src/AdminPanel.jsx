@@ -5,14 +5,24 @@ import "./AdminPanel.css"; // optional styling
 function AdminPanel() {
   const [entries, setEntries] = useState([]);
   const [form, setForm] = useState({ system: "", vendor: "", problem: "", what_to_try_first: "", when_to_call_support: "" });
-  const [editingId, setEditingId] = useState(null);
+
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [message, setMessage] = useState("");
+
+  const loadEntries = async () => {
+    try {
+      const res = await fetch("/api/entries");
+      const data = await res.json();
+      setEntries(data);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    }
+  };
+
 
   // Fetch all entries
   useEffect(() => {
-    fetch("/api/entries")
-      .then(res => res.json())
-      .then(data => setEntries(data))
-      .catch(err => console.error("Fetch error:", err));
+    loadEntries();
   }, []);
 
   const handleChange = (e) => {
@@ -29,24 +39,27 @@ function AdminPanel() {
       when_to_call_support: form.when_to_call_support
     };
 
-    const url = editingId ? `/api/entries/${editingId}` : "/api/entries";
-    const method = editingId ? "PUT" : "POST";
+    const url = editingIndex !== null ? `/api/entries/${editingIndex}` : "/api/entries";
+    const method = editingIndex !== null ? "PUT" : "POST";
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+      if (res.ok) {
+        setForm({ system: "", vendor: "", problem: "", what_to_try_first: "", when_to_call_support: "" });
+        setEditingIndex(null);
+        await loadEntries();
+        setMessage(`Entry ${method === "POST" ? "added" : "updated"} successfully`);
+      } else {
+        setMessage("Failed to save entry");
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      setMessage("Failed to save entry");
 
-    if (res.ok) {
-      const entry = await res.json();
-      setEntries(prev => (
-        editingId
-          ? prev.map(e => (e.id === entry.id ? entry : e))
-          : [...prev, entry]
-      ));
-      setForm({ system: "", vendor: "", problem: "", what_to_try_first: "", when_to_call_support: "" });
-      setEditingId(null);
     }
   };
 
@@ -66,14 +79,17 @@ function AdminPanel() {
 
     const res = await fetch(`/api/entries/${id}`, { method: "DELETE" });
     if (res.ok) {
-      const { id: removedId } = await res.json();
-      setEntries(prev => prev.filter(e => e.id !== removedId));
+
+      await loadEntries();
+      setMessage("Entry deleted");
+
     }
   };
 
   return (
     <div className="admin-container">
       <h2>🛠️ Troubleshooting Admin Panel</h2>
+      {message && <div className="status-message">{message}</div>}
 
       <form className="admin-form" onSubmit={handleSubmit}>
         <input name="system" value={form.system} onChange={handleChange} placeholder="System" required />
