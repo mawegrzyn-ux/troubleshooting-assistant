@@ -12,6 +12,8 @@ const model = new OpenAI({
   maxTokens: 500,
 });
 
+let vectorStore;
+
 async function loadJSON(filePath) {
   const raw = fs.readFileSync(filePath);
   const jsonData = JSON.parse(raw);
@@ -29,20 +31,9 @@ When to call support: ${item.when_to_call_support}`,
 }
 
 async function searchDocs(query) {
-  let allDocs = [];
-
-  for (let doc of catalog) {
-    if (doc.type === "json") {
-      const entries = await loadJSON(doc.path);
-      allDocs = allDocs.concat(entries);
-    }
+  if (!vectorStore) {
+    await initStore();
   }
-
-  const vectorStore = await MemoryVectorStore.fromDocuments(
-    allDocs,
-    new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
-  );
-
   return await vectorStore.similaritySearch(query, 5);
 }
 
@@ -89,5 +80,17 @@ export async function detectResolutionIntent(message) {
 }
 
 export async function initStore() {
-  // Optional future use
+  let allDocs = [];
+
+  for (let doc of catalog) {
+    if (doc.type === "json") {
+      const entries = await loadJSON(doc.path);
+      allDocs = allDocs.concat(entries);
+    }
+  }
+
+  vectorStore = await MemoryVectorStore.fromDocuments(
+    allDocs,
+    new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
+  );
 }
