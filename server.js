@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { getTroubleshootingResponse, initStore, detectResolutionIntent } from "./troubleshooter.js";
 import adminRoutes from "./adminRoutes.js";
+import { translateText } from "./translator.js";
 
 dotenv.config();
 
@@ -30,6 +31,18 @@ app.post("/chat", async (req, res) => {
   } catch (err) {
     console.error("Error in /chat:", err);
     res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+// Translation endpoint
+app.post("/translate", async (req, res) => {
+  try {
+    const { text, targetLang } = req.body;
+    const translated = await translateText(text, targetLang);
+    res.json({ text: translated });
+  } catch (err) {
+    console.error("Error in /translate:", err);
+    res.status(500).json({ error: "Translation failed" });
   }
 });
 

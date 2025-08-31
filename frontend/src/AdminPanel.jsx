@@ -64,7 +64,7 @@ function AdminPanel() {
   };
 
   const handleEdit = (entry) => {
-    setEditingId(entry.id);
+    setEditingIndex(entry.id);
     setForm({
       system: entry.system,
       vendor: entry.vendor,
@@ -97,7 +97,7 @@ function AdminPanel() {
         <input name="problem" value={form.problem} onChange={handleChange} placeholder="Problem" required />
         <textarea name="what_to_try_first" value={form.what_to_try_first} onChange={handleChange} placeholder="Steps (one per line)" rows={5} required />
         <textarea name="when_to_call_support" value={form.when_to_call_support} onChange={handleChange} placeholder="When to call support" rows={2} required />
-        <button type="submit">{editingId ? "Update" : "Add"} Entry</button>
+        <button type="submit">{editingIndex ? "Update" : "Add"} Entry</button>
       </form>
 
       <hr />
