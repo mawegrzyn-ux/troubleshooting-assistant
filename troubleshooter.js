@@ -43,7 +43,7 @@ async function searchDocs(query) {
   return await vectorStore.similaritySearch(query, 5);
 }
 
-export async function getTroubleshootingResponse(query, clarifiedSystem = "", selectedProblem = "") {
+async function getTroubleshootingResponse(query, clarifiedSystem = "", selectedProblem = "") {
   const results = await searchDocs(query);
 
   if (!results || results.length === 0) {
@@ -87,13 +87,13 @@ User: ${query}`;
   return { text: reply };
 }
 
-export async function detectResolutionIntent(message) {
+async function detectResolutionIntent(message) {
   const prompt = `Does the following message indicate the user's problem is resolved?\n\n"${message}"\n\nAnswer yes or no.`;
   const reply = await model.call(prompt);
   return reply.toLowerCase().includes("yes");
 }
 
-export async function initStore() {
+async function initStore() {
   let allDocs = [];
 
   for (let doc of catalog) {
@@ -108,3 +108,5 @@ export async function initStore() {
     new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
   );
 }
+
+export { getTroubleshootingResponse, detectResolutionIntent, initStore };
