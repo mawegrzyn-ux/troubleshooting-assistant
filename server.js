@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { getTroubleshootingResponse, initStore, detectResolutionIntent } from "./troubleshooter.js";
 import adminRoutes from "./adminRoutes.js";
-import { translateText } from "./translator.js";
+import { translateText, detectLanguage } from "./translator.js";
 
 dotenv.config();
 
@@ -43,6 +43,17 @@ app.post("/translate", async (req, res) => {
   } catch (err) {
     console.error("Error in /translate:", err);
     res.status(500).json({ error: "Translation failed" });
+  }
+});
+
+app.post("/detect-language", async (req, res) => {
+  try {
+    const { text } = req.body;
+    const language = await detectLanguage(text);
+    res.json({ language });
+  } catch (err) {
+    console.error("Error in /detect-language:", err);
+    res.status(500).json({ error: "Language detection failed" });
   }
 });
 

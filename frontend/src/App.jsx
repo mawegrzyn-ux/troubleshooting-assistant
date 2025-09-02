@@ -9,7 +9,7 @@ function App() {
   const [clarifiedSystem, setClarifiedSystem] = useState(null);
   const [systemOptions, setSystemOptions] = useState([]);
   const messagesEndRef = useRef(null);
-  const { language, translate } = useTranslation();
+  const { language, translate, setLanguage } = useTranslation();
   const [labels, setLabels] = useState({
     you: "YOU",
     assistant: "ASSISTANT",
@@ -21,6 +21,14 @@ function App() {
   });
 
   const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initialLang = params.get("lang") || params.get("language");
+    if (initialLang) {
+      setLanguage(initialLang);
+    }
+  }, [setLanguage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,7 +56,23 @@ function App() {
     setMessages((prev) => [...prev, newUserMessage]);
 
     try {
-      const englishInput = language === "en" ? input : await translate(input, "en");
+      let currentLang = language;
+      try {
+        const detectRes = await fetch(`${API_BASE}/detect-language`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: input }),
+        });
+        const detectData = await detectRes.json();
+        if (detectData.language) {
+          currentLang = detectData.language;
+          setLanguage(currentLang);
+        }
+      } catch (err) {
+        console.error("Language detection failed", err);
+      }
+
+      const englishInput = currentLang === "en" ? input : await translate(input, "en");
       const response = await fetch(`${API_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,8 +96,8 @@ function App() {
 
       if (data.message || data.text) {
         let assistantText = data.message || data.text;
-        if (language !== "en") {
-          assistantText = await translate(assistantText);
+        if (currentLang !== "en") {
+          assistantText = await translate(assistantText, currentLang);
         }
         const assistantMessage = { sender: "assistant", text: assistantText };
         setMessages((prev) => [...prev, assistantMessage]);

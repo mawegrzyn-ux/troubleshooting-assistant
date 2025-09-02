@@ -3,6 +3,7 @@ import { useTranslation } from "./TranslationContext.jsx";
 import "./LanguageSelector.css";
 
 const LANGUAGES = [
+  { code: "en", label: "English" },
   { code: "it", label: "Italian" },
   { code: "es", label: "Spanish" },
   { code: "fr", label: "French" },
@@ -13,13 +14,27 @@ const LANGUAGES = [
   { code: "sr", label: "Serbian" },
 ];
 
+const FLAGS = {
+  en: "🇺🇸",
+  it: "🇮🇹",
+  es: "🇪🇸",
+  fr: "🇫🇷",
+  "fr-BE": "🇧🇪",
+  nl: "🇳🇱",
+  de: "🇩🇪",
+  da: "🇩🇰",
+  sr: "🇷🇸",
+};
+
 export default function LanguageSelector() {
-  const { setLanguage } = useTranslation();
+  const { language, setLanguage } = useTranslation();
   const [open, setOpen] = useState(false);
+  const currentFlag = FLAGS[language] || "🏳️";
 
   return (
     <div className="language-selector">
       <button className="burger" onClick={() => setOpen(true)} aria-label="select language">
+        <span className="flag">{currentFlag}</span>
         ☰
       </button>
       {open && (
