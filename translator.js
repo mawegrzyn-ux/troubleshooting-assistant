@@ -1,7 +1,4 @@
-import dotenv from "dotenv";
 import { OpenAI } from "@langchain/openai";
-
-dotenv.config();
 
 const translator = new OpenAI({
   temperature: 0,

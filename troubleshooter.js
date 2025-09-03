@@ -1,10 +1,7 @@
 import catalog from "./data/catalog.json" with { type: "json" };
 import fs from "fs";
-import dotenv from "dotenv";
 import { OpenAIEmbeddings, OpenAI } from "@langchain/openai";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
-
-dotenv.config();
 
 if (!process.env.OPENAI_API_KEY) {
   console.error("Missing OPENAI_API_KEY environment variable. Please set it in your .env file.");
