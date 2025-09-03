@@ -10,6 +10,14 @@ The server expects an `OPENAI_API_KEY` in its environment. Copy `.env.example` t
 OPENAI_API_KEY=your-openai-api-key
 ```
 
+## Installation
+
+Install the JavaScript dependencies before running the server:
+
+```bash
+npm install
+```
+
 ## Clarification protocol
 
 The assistant may respond with a `needsClarification` object when it lacks critical system context. The structure of this response is:
