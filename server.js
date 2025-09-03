@@ -1,18 +1,9 @@
+import 'dotenv/config';
 import http from 'http';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
-let dotenv;
-try {
-  dotenv = require('dotenv');
-  dotenv.config();
-} catch (err) {
-  console.warn('dotenv not found; skipping environment variable loading');
-}
 import { getTroubleshootingResponse, initStore, detectResolutionIntent } from './troubleshooter.js';
 import { translateText, detectLanguage } from './translator.js';
 
